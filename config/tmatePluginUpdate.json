@@ -1,0 +1,102 @@
+{
+  "appGUID": "286b0652-c5ef-46c0-aa8c-7b617bbf6ab9",
+  "appName": "AllxonScriptTemplate",
+  "displayName": "Tmate plugIN",
+  "type": "ib",
+  "version": "1.00.1000",
+  "startCommand": "/opt/allxon/plugINs/286b0652-c5ef-46c0-aa8c-7b617bbf6ab9/scripts/startPlugin.sh",
+  "stopCommand": "/opt/allxon/plugINs/286b0652-c5ef-46c0-aa8c-7b617bbf6ab9/scripts/stopPlugin.sh",
+  "modules": [
+    {
+      "moduleName": "tmateWebConsole",
+      "displayName": "Remote Console",
+      "properties": [
+        {
+          "name": "officialSite",
+          "displayName": "Powered by",
+          "description": "",
+          "displayType": "link",
+          "value":
+          {
+            "url": "https://tmate.io",
+            "alias": "tmate.io"
+          }
+        },
+        {
+          "name": "license",
+          "displayName": "LICENSE",
+          "description": "",
+          "displayType": "link",
+          "value":
+          {
+            "url": "https://opensource.org/licenses/BSD-3-Clause",
+            "alias": "The 3-Clause BSD License"
+          }
+        }
+      ],
+      "states": [
+        {
+          "name": "status",
+          "displayName": "Status",
+          "description": "Running status of tmate.",
+          "displayType": "string"
+        },
+        {
+          "name": "version",
+          "displayName": "Version",
+          "description": "The software version of tmate.",
+          "displayType": "string"
+        },
+        {
+          "name": "web",
+          "displayName": "Web",
+          "displayType": "link"
+        },
+        {
+          "name": "ssh",
+          "displayName": "SSH",
+          "displayType": "link"
+        }
+      ],
+      "commands": [
+        {
+          "name": "install",
+          "type": "asynchronous",
+          "displayName": "Install tmate",
+          "description": "Install tmate to be able to do instant terminal sharing.",
+          "params": []
+        },
+        {
+          "name": "start",
+          "type": "asynchronous",
+          "displayName": "Start running tmate",
+          "description": "Start running tmate to enable instant terminal sharing.",
+          "params": [
+            {
+              "name": "password",
+              "displayName": "Password",
+              "description": "Set a password for the user account tmate",
+              "displayType": "string",
+              "required": "true",
+              "defaultValue":"tmate"
+            }
+          ]
+        },
+        {
+          "name": "stop",
+          "type": "asynchronous",
+          "displayName": "Stop running tmate",
+          "description": "Stop tmate to terminate terminal sharing.",
+          "params": []
+        },
+        {
+          "name": "uninstall",
+          "type": "asynchronous",
+          "displayName": "Uninstall tmate",
+          "description": "Uninstall tmate.",
+          "params": []
+        }
+      ]
+    }
+  ]
+}

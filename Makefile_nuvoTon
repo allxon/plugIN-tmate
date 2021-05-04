@@ -1,0 +1,82 @@
+# Makefile example. Compile all .c files and build execution file
+TOOLCHAIN=${HOME}/dev/arm_linux_4.8/usr
+QUIET = @
+ECHO  = echo
+RM = rm -rf
+CC := ${TOOLCHAIN}/bin/arm-linux-g++
+
+GCC_GXX_WARNINGS =  -Wall -Wno-error -Wno-packed -Wpointer-arith -Wredundant-decls -Wstrict-aliasing=3 -Wswitch-enum -Wundef -Wwrite-strings -Wextra -Wno-unused-parameter \
+
+CFLAGS  = -Os
+LDFLAGS = -lm
+OBJS  = $(patsubst %.cpp,%.o,$(wildcard $(PWD)/MainSrc/*.cpp))
+UTIL_OBJS = $(patsubst %.cpp,%.o,$(wildcard $(PWD)/Util/src/*.cpp))
+TARGET = device_plugin
+OUTPUTPATH = $(PWD)/output
+UTIL_FOLDER = $(PWD)/Util
+MAIN_FOLDER = $(PWD)/MainSrc
+ALLOBJS = $(wildcard $(OUTPUTPATH)/*.o)
+WEBSOCKET_FOLDER = $(PWD)/websocket
+
+CLIB = $(TOOLCHAIN)/arm-nuvoton-linux-uclibcgnueabi/lib/libstdc++.a \
+	$(TOOLCHAIN)/arm-nuvoton-linux-uclibcgnueabi/sysroot/usr/lib/librt.a \
+	$(TOOLCHAIN)/arm-nuvoton-linux-uclibcgnueabi/sysroot/usr/lib/libpthread.a \
+	$(TOOLCHAIN)/lib/libcrypto.so \
+	$(TOOLCHAIN)/lib/libssl.so \
+	$(TOOLCHAIN)/arm-nuvoton-linux-uclibcgnueabi/sysroot/usr/lib/libz.so \
+	$(TOOLCHAIN)/lib/libcurl.so \
+	$(TOOLCHAIN)/lib/libadmplugin.so \
+	-lm
+
+CLIB += $(WEBSOCKET_FOLDER)/lib/libboost_system.a \
+	$(WEBSOCKET_FOLDER)/lib/libboost_chrono.a \
+	$(WEBSOCKET_FOLDER)/lib/libboost_random.a \
+	$(PWD)/lib/libargon2.a
+
+BUILD_INFO_INCLUDE_FILE = $(PWD)/Util/include/build_info.h
+BUILD_DATE := $(shell date '+%Y%m%d-%H%M%S')
+BUILD_VERSION := '1.00.2000'
+
+all: prestep default
+
+prestep:
+ifneq ($(wildcard $(OUTPUTPATH)),)
+	@echo "Found $(OUTPUTPATH)"
+else
+	@echo "Did not find $(OUTPUTPATH)"
+	mkdir $(OUTPUTPATH)
+endif
+	$ rm -f $(BUILD_INFO_INCLUDE_FILE) 
+	$ echo '#define BUILD_INFO "'$(BUILD_VERSION)_$(BUILD_DATE)'"' > $(BUILD_INFO_INCLUDE_FILE); 
+
+default: $(TARGET)
+
+$(TARGET): compileutil mainsrc
+	@echo ""
+	@echo "======> Start build $(TARGET) <======"
+	$(CC) $(ALLOBJS) $(CLIB) -o $@
+	@echo "****** Copy $@ to $(OUTPUTPATH) ******"
+	$ mv $@ $(OUTPUTPATH)/
+
+compileutil:
+	@echo ""
+	@echo "======> Start compile util folder <======"
+	$ cd $(UTIL_FOLDER) && make nuvoton
+
+	@echo "****** Copy *.o to $(OUTPUTPATH) ******"
+	$ cd $(OUTPUTPATH) && mv $(UTIL_FOLDER)/src/*.o .
+
+mainsrc:
+	@echo ""
+	@echo "======> Start compile main folder <======"
+	$ cd $(MAIN_FOLDER) && make nuvoton
+
+	@echo "****** Copy *.o to $(OUTPUTPATH) ******"
+	$ cd $(OUTPUTPATH) && mv $(MAIN_FOLDER)/*.o .
+
+clean:
+	$(QUIET)$(RM) $(OUTPUTPATH)/*
+
+
+
+
