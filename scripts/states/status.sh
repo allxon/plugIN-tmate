@@ -9,9 +9,9 @@ while :
 do
 	which tmate > /dev/null || { echo "Not running"; break; }
 
-	test -e /tmp/tmate.sock > /dev/null || { echo "Stopped"; break; }
+	test -e /tmp/tmate.sock > /dev/null || { echo "Closed"; break; }
 
-	echo "Running"
+	echo "Open"
 
 	break
 done

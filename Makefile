@@ -16,14 +16,11 @@ UTIL_FOLDER = $(PWD)/Util
 MAIN_FOLDER = $(PWD)/MainSrc
 PLUGINS_FOLDER = $(PWD)/Plugins
 ALLOBJS = $(wildcard $(OUTPUTPATH)/*.o)
-WEBSOCKET_FOLDER = $(PWD)/websocket
 
-CLIB = $(WEBSOCKET_FOLDER)/lib/libboost_system.a \
-	$(WEBSOCKET_FOLDER)/lib/libboost_chrono.a \
-	$(WEBSOCKET_FOLDER)/lib/libboost_random.a \
-	$(PWD)/lib/libadmplugin.so \
-	$(PWD)/lib/libargon2.a
-CLIB += -lrt -lpthread -lcurl -lcrypto
+CLIB = $(PWD)/lib/libadmplugin.so \
+	   $(PWD)/lib/libargon2.a
+
+CLIB += -lboost_system -lboost_chrono -lboost_random -lrt -lpthread -lcurl -lcrypto
 
 BUILD_INFO_INCLUDE_FILE = $(PWD)/Util/include/build_info.h
 BUILD_DATE := $(shell date '+%Y%m%d-%H%M%S')

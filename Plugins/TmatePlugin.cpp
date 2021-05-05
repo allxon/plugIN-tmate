@@ -137,13 +137,6 @@ void CTmatePlugin::UpdateStates(bitset<4> updateMask)
         RunStatesScript(cmdStatus);
     }
     
-    if ((updateMask & StateUpdated::version) == StateUpdated::version)
-    {
-        string cmdVersion = m_pluginPath;
-        cmdVersion.append(SCRIPTS_STATES_PATH).append(TmateStates::version).append(".sh");
-        RunStatesScript(cmdVersion);
-    }
-    
     if ((updateMask & StateUpdated::web) == StateUpdated::web)
     {
         string cmdWeb = m_pluginPath;
@@ -156,6 +149,13 @@ void CTmatePlugin::UpdateStates(bitset<4> updateMask)
         string cmdSsh = m_pluginPath;
         cmdSsh.append(SCRIPTS_STATES_PATH).append(TmateStates::ssh).append(".sh");
         RunStatesScript(cmdSsh);
+    }
+
+    if ((updateMask & StateUpdated::version) == StateUpdated::version)
+    {
+        string cmdVersion = m_pluginPath;
+        cmdVersion.append(SCRIPTS_STATES_PATH).append(TmateStates::version).append(".sh");
+        RunStatesScript(cmdVersion);
     }
 }
 

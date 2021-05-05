@@ -135,7 +135,7 @@ int launchAgent()
     if (psId == -1)
     {
         agentLaunchedByPlugin = true;
-        system("BDM_Agent -d -o &");
+        system("BDM_Agent -d -o &"); // TODO: add checking the status value of system call for Agent.
         psId = getProcIdByName(BDM_AGENT);
         UTL_LOG_INFO("2. Agent psId: %d", psId);
         currConnState = connection->getCurrentState();
@@ -394,7 +394,7 @@ CONNECT_WEBSOCKET:
                     wsclientobj->GetCommandThreadHandle() > -1 && wsclientobj-> GetDateThreadHandle() > -1 &&
                     wsclientobj->WebClientIsAlive())
                 {
-                    UTL_LOG_INFO("%d, %d, %d, %d, %d", wsclientobj->WebClientIsAlive(), wsclientobj->GetThreadHandle(),
+                    UTL_LOG_INFO("%d, %ld, %ld, %ld, %ld", wsclientobj->WebClientIsAlive(), wsclientobj->GetThreadHandle(),
                     wsclientobj->GetUpdateThreadHandle(), wsclientobj->GetCommandThreadHandle(), wsclientobj->GetDateThreadHandle());
                     sleep(1);
                 }

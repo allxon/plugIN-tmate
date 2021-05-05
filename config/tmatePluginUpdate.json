@@ -3,7 +3,7 @@
   "appName": "AllxonScriptTemplate",
   "displayName": "Tmate plugIN",
   "type": "ib",
-  "version": "1.00.1000",
+  "version": "1.00.2000",
   "startCommand": "/opt/allxon/plugINs/286b0652-c5ef-46c0-aa8c-7b617bbf6ab9/scripts/startPlugin.sh",
   "stopCommand": "/opt/allxon/plugINs/286b0652-c5ef-46c0-aa8c-7b617bbf6ab9/scripts/stopPlugin.sh",
   "modules": [
@@ -36,15 +36,15 @@
       ],
       "states": [
         {
-          "name": "status",
-          "displayName": "Status",
-          "description": "Running status of tmate.",
-          "displayType": "string"
-        },
-        {
           "name": "version",
           "displayName": "Version",
           "description": "The software version of tmate.",
+          "displayType": "string"
+        },
+        {
+          "name": "status",
+          "displayName": "Session",
+          "description": "Running status of tmate.",
           "displayType": "string"
         },
         {
@@ -69,8 +69,8 @@
         {
           "name": "start",
           "type": "asynchronous",
-          "displayName": "Start running tmate",
-          "description": "Start running tmate to enable instant terminal sharing.",
+          "displayName": "Open session",
+          "description": "Open a tmate session to enable instant terminal sharing.",
           "params": [
             {
               "name": "password",
@@ -85,8 +85,8 @@
         {
           "name": "stop",
           "type": "asynchronous",
-          "displayName": "Stop running tmate",
-          "description": "Stop tmate to terminate terminal sharing.",
+          "displayName": "Close session",
+          "description": "Close the tmate session to terminate terminal sharing.",
           "params": []
         },
         {
