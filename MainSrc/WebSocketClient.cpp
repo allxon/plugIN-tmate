@@ -323,7 +323,6 @@ void CWebSocketClient::On_close(void* c, websocketpp::connection_hdl hdl)
     }
 }
 
-#ifndef WS_NO_TLS_CLIENT
 ContextPtr CWebSocketClient::On_tls_init() {
 	ContextPtr ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::sslv23);
 
@@ -340,7 +339,6 @@ ContextPtr CWebSocketClient::On_tls_init() {
 	}
 	return ctx;
 }
-#endif
 
 int retryTimes = 0;
 
@@ -534,7 +532,7 @@ static UTLTHREAD_FN_DECL NotifyDataThread(void* arg)
 }
 #endif
 
-#if defined(TEST_UPDATE) || defined(TEST_LOCAL_COMMANDS)
+#if defined(TEST_UPDATE)
 bool CWebSocketClient::SendPluginNotify(CWebSocketClient *ptr, const char *notify)
 {
     // send notify
@@ -559,11 +557,7 @@ bool CWebSocketClient::SendPluginNotify(CWebSocketClient *ptr, const char *notif
 CWebSocketClient::CWebSocketClient(string ipaddr, string port)
 {
     m_endWebSocket = false;
-#ifdef WS_NO_TLS_CLIENT
-    m_url.append("ws://");
-#else
     m_url.append("wss://");
-#endif
     m_url.append(ipaddr);
     m_url.append(":");
     m_url.append(port);
@@ -612,17 +606,13 @@ void CWebSocketClient::Initial()
         m_client.set_fail_handler(bind(&On_fail,this,::_1));
         m_client.set_message_handler(bind(&On_message,this,::_1,::_2));
         m_client.set_close_handler(bind(&On_close, this,::_1));
-#ifndef WS_NO_TLS_CLIENT
         m_client.set_tls_init_handler(bind(&on_tls_init));
-#endif
 #else
         m_client.set_open_handler(bind(&On_open,this,placeholders::_1));
         m_client.set_fail_handler(bind(&On_fail,this,placeholders::_1));
         m_client.set_message_handler(bind(&On_message,this,placeholders::_1,placeholders::_2));
         m_client.set_close_handler(bind(&On_close, this,placeholders::_1));
-#ifndef WS_NO_TLS_CLIENT
         m_client.set_tls_init_handler(bind(&On_tls_init));
-#endif
 #endif
     } catch(const exception & e) {
         UTL_LOG_ERROR("Exception: %s\n", e.what());
@@ -707,7 +697,6 @@ void CWebSocketClient::SignalHandler(int signal) {
     switch (signal) {
         case SIGINT:
             UTL_LOG_INFO("Caught SIGINT, exiting now\n");
-            // needCheckStates = true;
             gotSigInt = true;
             break;
 

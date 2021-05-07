@@ -1,11 +1,7 @@
 #ifndef     _WEBSOCKETCLIENT_H_
 #define     _WEBSOCKETCLIENT_H_
 
-#ifdef WS_NO_TLS_CLIENT
-#include "../websocket/websocketpp/config/asio_no_tls_client.hpp"
-#else
 #include "../websocket/websocketpp/config/asio_client.hpp"
-#endif
 #include "../websocket/websocketpp/client.hpp"
 #include "../Util/include/Utl_thread.h"
 #include "../Util/include/Utl_mutex.h"
@@ -29,22 +25,14 @@ extern int retryConnectWebsocket;
 #endif
 
 #define IP_LOCALHOST        "127.0.0.1"
-#ifdef WS_NO_TLS_CLIENT
-#define AGENT_WS_PORT       "5566"
-#else
 #define AGENT_WSS_PORT      "55688"
-#endif
 #ifdef _ARM_PLATFORM_
 #define PLUGIN_WORKING_FILE "/mnt/user/SyncAgent/pluginstate"
 #endif
 
 
-#ifdef WS_NO_TLS_CLIENT
-typedef websocketpp::client<websocketpp::config::asio_client> WebClient;
-#else
 typedef websocketpp::client<websocketpp::config::asio_tls_client> WebClient;
 typedef std::shared_ptr<boost::asio::ssl::context> ContextPtr;
-#endif
 
 
 class CWEBCLIENTPARAM {
@@ -55,11 +43,7 @@ public:
 
 class CWebSocketClient: public CPluginUtil {
 public:
-#ifdef WS_NO_TLS_CLIENT
-    CWebSocketClient(std::string ipaddr=IP_LOCALHOST, std::string port=AGENT_WS_PORT);
-#else
     CWebSocketClient(std::string ipaddr=IP_LOCALHOST, std::string port=AGENT_WSS_PORT);
-#endif
     ~CWebSocketClient();
 
     void Initial();
@@ -80,16 +64,14 @@ public:
     static void On_fail(void* c, websocketpp::connection_hdl hdl);
     static void On_message(void* c, websocketpp::connection_hdl hdl, WebClient::message_ptr msg);
     static void On_close(void* c, websocketpp::connection_hdl hdl);
-#ifndef WS_NO_TLS_CLIENT
     static ContextPtr On_tls_init();
-#endif
     static int ExponentialRetryPause(int retryTimes);
     static void SignalHandler(int signal);
 #ifdef _ARM_PLATFORM_
     static void ClearPluginState();
 #endif
 
-#if defined(TEST_UPDATE) || defined(TEST_LOCAL_COMMANDS)
+#if defined(TEST_UPDATE)
     CPluginSample *GetSamplePlugin() { return m_plugin; }
     void SetSamplePlugin(CPluginSample *plugin) { m_plugin = plugin; }
     bool SendPluginNotify(CWebSocketClient *ptr, const char *notify);
@@ -115,11 +97,6 @@ public:
     pthread_t GetDateThreadHandle() { return m_threadDataHandle.handle; }
 #endif
 
-#ifdef TEST_LOCAL_COMMANDS
-    void SendNotifyPluginLocalCommand();
-    char *TestSDKSendLocalCommand();
-#endif
-
 public:
     bool m_threadstart;
     bool m_wsConnectionOpened;
@@ -137,7 +114,7 @@ private:
     UTLCond_t m_NotifyCMDcond;
     bool m_endWebSocket;
 
-#if defined(TEST_UPDATE) || defined(TEST_LOCAL_COMMANDS)
+#if defined(TEST_UPDATE)
     CPluginSample *m_plugin;
 #endif
 
