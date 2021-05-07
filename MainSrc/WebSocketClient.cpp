@@ -323,6 +323,25 @@ void CWebSocketClient::On_close(void* c, websocketpp::connection_hdl hdl)
     }
 }
 
+#ifndef WS_NO_TLS_CLIENT
+ContextPtr CWebSocketClient::On_tls_init() {
+	ContextPtr ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::sslv23);
+
+	try {
+		ctx->set_options(boost::asio::ssl::context::default_workarounds |
+			boost::asio::ssl::context::no_sslv2 |
+			boost::asio::ssl::context::no_sslv3 |
+			boost::asio::ssl::context::single_dh_use);
+
+		ctx->set_verify_mode(boost::asio::ssl::verify_none);
+	}
+	catch (std::exception& e) {
+		std::cout << e.what() << std::endl;
+	}
+	return ctx;
+}
+#endif
+
 int retryTimes = 0;
 
 #ifdef TEST_UPDATE
@@ -540,7 +559,11 @@ bool CWebSocketClient::SendPluginNotify(CWebSocketClient *ptr, const char *notif
 CWebSocketClient::CWebSocketClient(string ipaddr, string port)
 {
     m_endWebSocket = false;
+#ifdef WS_NO_TLS_CLIENT
     m_url.append("ws://");
+#else
+    m_url.append("wss://");
+#endif
     m_url.append(ipaddr);
     m_url.append(":");
     m_url.append(port);
@@ -578,12 +601,10 @@ CWebSocketClient::~CWebSocketClient()
 void CWebSocketClient::Initial()
 {
     try {
-        m_client.set_access_channels(websocketpp::log::alevel::none);
-        // UTL_LOG_INFO("==> se t access channels");
+        m_client.set_access_channels(websocketpp::log::alevel::all);
         m_client.clear_access_channels(websocketpp::log::alevel::frame_payload|websocketpp::log::alevel::frame_header|websocketpp::log::alevel::control);
-        // UTL_LOG_INFO("==> clear access channels");
         m_client.init_asio();
-        // UTL_LOG_INFO("==> init asio");
+        m_client.set_reuse_addr(true);
 
         // Register our handlers
 #ifdef  _ARM_PLATFORM_
@@ -591,11 +612,17 @@ void CWebSocketClient::Initial()
         m_client.set_fail_handler(bind(&On_fail,this,::_1));
         m_client.set_message_handler(bind(&On_message,this,::_1,::_2));
         m_client.set_close_handler(bind(&On_close, this,::_1));
+#ifndef WS_NO_TLS_CLIENT
+        m_client.set_tls_init_handler(bind(&on_tls_init));
+#endif
 #else
         m_client.set_open_handler(bind(&On_open,this,placeholders::_1));
         m_client.set_fail_handler(bind(&On_fail,this,placeholders::_1));
         m_client.set_message_handler(bind(&On_message,this,placeholders::_1,placeholders::_2));
         m_client.set_close_handler(bind(&On_close, this,placeholders::_1));
+#ifndef WS_NO_TLS_CLIENT
+        m_client.set_tls_init_handler(bind(&On_tls_init));
+#endif
 #endif
     } catch(const exception & e) {
         UTL_LOG_ERROR("Exception: %s\n", e.what());

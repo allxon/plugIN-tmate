@@ -4,7 +4,7 @@ void Log::init()
 {
     path_ = GetSelfPath();
     path_.replace(0, 4, "/var/log");
-    path_.replace(path_.find("/tmate_plugIN"), std::string("/tmate_plugIN").size(), "");
+    // path_.replace(path_.find("/tmatePlugin"), std::string("/tmatePlugin").size(), "");
     if(path_.empty() || titlefilename_.empty() || maxsize_== 0)
     {
         return void();

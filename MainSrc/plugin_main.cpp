@@ -175,10 +175,6 @@ void On_close(void* c, websocketpp::connection_hdl hdl)
     ptr->stop();
 }
 #endif
-// void On_shutdown(void* c, websocketpp::connection_hdl hdl)
-// {
-//     UTL_LOG_INFO("shutdown...");
-// }
 
 int main(int argc, char **argv) 
 {
@@ -318,7 +314,7 @@ CONNECT_WEBSOCKET:
             {
                 string sampleName = config->GetSampleName();
                 UTL_LOG_INFO("sample name = %s", sampleName.c_str());
-                if (sampleName.compare(SAMPLE_SCRIPT_TEMPLATE) == 0)
+                if (sampleName.compare(SAMPLE_TMATE_PLUGIN) == 0)
                 {
                     CTmatePlugin *tmatePlugin = new CTmatePlugin(config);
                     if (tmatePlugin->SetNotifyPluginUpdate()) wsclientobj->SetSamplePlugin(tmatePlugin);

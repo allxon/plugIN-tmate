@@ -3,7 +3,7 @@
   "appName": "AllxonScriptTemplate",
   "displayName": "Tmate plugIN",
   "type": "ib",
-  "version": "1.00.2000",
+  "version": "1.00.2001",
   "startCommand": "/opt/allxon/plugINs/286b0652-c5ef-46c0-aa8c-7b617bbf6ab9/scripts/startPlugin.sh",
   "stopCommand": "/opt/allxon/plugINs/286b0652-c5ef-46c0-aa8c-7b617bbf6ab9/scripts/stopPlugin.sh",
   "modules": [
@@ -60,15 +60,9 @@
       ],
       "commands": [
         {
-          "name": "install",
-          "type": "asynchronous",
-          "displayName": "Install tmate",
-          "description": "Install tmate to be able to do instant terminal sharing.",
-          "params": []
-        },
-        {
           "name": "start",
           "type": "asynchronous",
+          "displayCategory": "Session",
           "displayName": "Open session",
           "description": "Open a tmate session to enable instant terminal sharing.",
           "params": [
@@ -85,13 +79,23 @@
         {
           "name": "stop",
           "type": "asynchronous",
+          "displayCategory": "Session",
           "displayName": "Close session",
           "description": "Close the tmate session to terminate terminal sharing.",
           "params": []
         },
         {
+          "name": "install",
+          "type": "asynchronous",
+          "displayCategory": "Installation",
+          "displayName": "Install tmate",
+          "description": "Install tmate to be able to do instant terminal sharing.",
+          "params": []
+        },
+        {
           "name": "uninstall",
           "type": "asynchronous",
+          "displayCategory": "Installation",
           "displayName": "Uninstall tmate",
           "description": "Uninstall tmate.",
           "params": []

@@ -20,7 +20,7 @@ ALLOBJS = $(wildcard $(OUTPUTPATH)/*.o)
 CLIB = $(PWD)/lib/libadmplugin.so \
 	   $(PWD)/lib/libargon2.a
 
-CLIB += -lboost_system -lboost_chrono -lboost_random -lrt -lpthread -lcurl -lcrypto
+CLIB += -lboost_system -lboost_chrono -lboost_random -lrt -lpthread -lssl -lcrypto
 
 BUILD_INFO_INCLUDE_FILE = $(PWD)/Util/include/build_info.h
 BUILD_DATE := $(shell date '+%Y%m%d-%H%M%S')

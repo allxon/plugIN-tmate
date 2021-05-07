@@ -1,11 +1,11 @@
-#ifndef _SCRIPTTEMPLATE_H_
-#define _SCRIPTTEMPLATE_H_
+#ifndef _TMATEPLUGIN_H_
+#define _TMATEPLUGIN_H_
 
 #include <bitset>
 #include "PluginSample.h"
 #include "../Util/include/AlertsPluginJson.h"
 
-#define SAMPLE_SCRIPT_TEMPLATE      "TmatePlugin"
+#define SAMPLE_TMATE_PLUGIN      "TmatePlugin"
 #define PLUGINS_PATH                "/opt/allxon/plugINs/"
 #define SCRIPTS_STATES_PATH         "scripts/states/"
 #define SCRIPTS_COMMANDS_PATH       "scripts/commands/"
