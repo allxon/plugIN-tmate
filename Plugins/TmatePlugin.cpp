@@ -46,7 +46,7 @@ CTmatePlugin::~CTmatePlugin()
 CUpdatePluginJson *CTmatePlugin::SetNotifyPluginUpdate()
 {
     string configFile = m_pluginPath;
-    configFile.append("tmatePluginUpdate.json");
+    configFile.append("config/tmatePluginUpdate.json");
     CUpdatePluginJson *updatePluginObj = SetNotifyPluginUpdateFromFile(configFile);
 
     return updatePluginObj;

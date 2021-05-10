@@ -1,75 +1,75 @@
-# Makefile example. Compile all .c files and build execution file
 QUIET = @
 ECHO  = echo
 RM = rm -rf
 
-CC := g++
-
-GCC_GXX_WARNINGS =  -Wall -Wno-error -Wno-packed -Wpointer-arith -Wredundant-decls -Wstrict-aliasing=3 -Wswitch-enum -Wundef -Wwrite-strings -Wextra -Wno-unused-parameter \
-
-CFLAGS  = -Os
+CC = g++
+GCC_GXX_WARNINGS = -Wall -Wno-error -Wno-packed -Wpointer-arith -Wredundant-decls -Wstrict-aliasing=3 -Wswitch-enum -Wundef -Wwrite-strings -Wextra -Wno-unused-parameter
+CFLAGS = -Os
 LDFLAGS = -lm
 
+APP_GUID = 286b0652-c5ef-46c0-aa8c-7b617bbf6ab9
 TARGET = tmate_plugIN
+OBJ_PATH = objs
 OUTPUTPATH = $(PWD)/output
 UTIL_FOLDER = $(PWD)/Util
 MAIN_FOLDER = $(PWD)/MainSrc
 PLUGINS_FOLDER = $(PWD)/Plugins
-ALLOBJS = $(wildcard $(OUTPUTPATH)/*.o)
+CONFIG_FOLDER = $(PWD)/config
+SCRIPTS_FOLDER = $(PWD)/scripts
+BIN_FOLDER = /opt/allxon/plugINs/$(APP_GUID)
 
-CLIB = $(PWD)/lib/libadmplugin.so \
-	   $(PWD)/lib/libargon2.a
+CINC = -I$(MAIN_FOLDER) -I$(PWD)/websocket -I$(UTIL_FOLDER)/include -I$(PLUGINS_FOLDER)
+SRCDIR = Util/src Plugins MainSrc
+CLIB = -lboost_system -lboost_chrono -lboost_random -ladmplugin -lrt -lpthread -lssl -lcrypto
+CLIB += $(PWD)/lib/libargon2.a
 
-CLIB += -lboost_system -lboost_chrono -lboost_random -lrt -lpthread -lssl -lcrypto
+C_SRCDIR = $(SRCDIR)
+C_SOURCES = $(foreach d,$(C_SRCDIR),$(wildcard $(d)/*.c))
+C_OBJS = $(patsubst %.c, $(OBJ_PATH)/%.o, $(C_SOURCES))
+
+CPP_SRCDIR = $(SRCDIR)
+CPP_SOURCES = $(foreach d,$(CPP_SRCDIR),$(wildcard $(d)/*.cpp))
+CPP_OBJS = $(patsubst %.cpp, $(OBJ_PATH)/%.o, $(CPP_SOURCES))
+
+ALLOBJS = $(wildcard $(OBJ_PATH)/*.o)
 
 BUILD_INFO_INCLUDE_FILE = $(PWD)/Util/include/build_info.h
 BUILD_DATE := $(shell date '+%Y%m%d-%H%M%S')
-BUILD_VERSION := '1.00.2000'
+BUILD_VERSION := '1.06.2001'
 
-all: prestep default
 
-prestep:
-ifneq ($(wildcard $(OUTPUTPATH)),)
-	@echo "Found $(OUTPUTPATH)"
-else
-	@echo "Did not find $(OUTPUTPATH)"
-	mkdir $(OUTPUTPATH)
-endif
-	$ rm -f $(BUILD_INFO_INCLUDE_FILE) 
-	$ echo '#define BUILD_INFO "'$(BUILD_VERSION)_$(BUILD_DATE)'"' > $(BUILD_INFO_INCLUDE_FILE); 
+default:init compile
+	$(QUIET)$(ECHO) "###### Compile $(CPP_OBJS) $(C_OBJS)done!! ######"
 
-default: $(TARGET)
+$(C_OBJS):$(OBJ_PATH)/%.o:%.c
+	$(QUIET)$(ECHO) "$(CC) $(CFLAGS) -DLINUX $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@"
+	$(QUIET)$(CC) $(CFLAGS) -DLINUX $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@
 
-$(TARGET): compileutil plugins mainsrc
-	@echo ""
-	@echo "======> Start build $(TARGET) <======"
-	$(CC) $(ALLOBJS) $(CLIB) -o $@
-	@echo "****** Copy $@ to $(OUTPUTPATH) ******"
-	$ mv $@ $(OUTPUTPATH)/
+$(CPP_OBJS):$(OBJ_PATH)/%.o:%.cpp
+	$(QUIET)$(ECHO) "$(CC) $(CFLAGS) -DLINUX $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@"
+	$(QUIET)$(CC) $(CFLAGS) -DLINUX $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@
 
-compileutil:
-	@echo ""
-	@echo "======> Start compile util folder <======"
-	$ cd $(UTIL_FOLDER) && make
+init:
+	$(foreach d,$(SRCDIR), mkdir -p $(OBJ_PATH)/$(d);)
+	$(ECHO) '#define BUILD_INFO "'$(BUILD_VERSION)_$(BUILD_DATE)'"' > $(BUILD_INFO_INCLUDE_FILE);
 
-	@echo "****** Copy *.o to $(OUTPUTPATH) ******"
-	$ cd $(OUTPUTPATH) && mv $(UTIL_FOLDER)/src/*.o .
-
-plugins:
-	@echo ""
-	@echo "======> Start compile samples folder <======"
-	$ cd $(PLUGINS_FOLDER) && make
-
-	@echo "****** Copy *.o to $(OUTPUTPATH) ******"
-	$ cd $(OUTPUTPATH) && mv $(PLUGINS_FOLDER)/*.o .
-
-mainsrc:
-	@echo ""
-	@echo "======> Start compile main folder <======"
-	$ cd $(MAIN_FOLDER) && make
-
-	@echo "****** Copy *.o to $(OUTPUTPATH) ******"
-	$ cd $(OUTPUTPATH) && mv $(MAIN_FOLDER)/*.o .
+compile:$(C_OBJS) $(CPP_OBJS)
+	$(CC) $^ -o $(TARGET) $(LDFLAGS) $(CLIB)
+	$ mv $(TARGET) $(OUTPUTPATH)/
 
 clean:
-	$(QUIET)$(RM) $(OUTPUTPATH)/*
+	$(QUIET)$(RM) $(OBJ_PATH)
+	$(QUIET)rm -f $(OUTPUTPATH)/$(TARGET)
+
+install: $(OUTPUTPATH)/$(TARGET)
+	$(QUIET)sudo mkdir $(BIN_FOLDER)
+	$(QUIET)sudo cp $(OUTPUTPATH)/$(TARGET) $(BIN_FOLDER)/
+	$(QUIET)sudo cp -r $(CONFIG_FOLDER) $(BIN_FOLDER)/
+	$(QUIET)sudo cp -r $(SCRIPTS_FOLDER) $(BIN_FOLDER)/
+	$(QUIET)$(ECHO) "$(TARGET) and config, scripts files are copied to $(BIN_FOLDER)/"
+
+uninstall:
+	$(QUIET)sudo $(RM) $(BIN_FOLDER)
+	$(QUIET)$(ECHO) "$(TARGET) is removed."
+
+rebuild: clean compile
