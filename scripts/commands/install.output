@@ -1,31 +1,0 @@
-Hit:1 http://tw.archive.ubuntu.com/ubuntu focal InRelease
-Hit:2 http://tw.archive.ubuntu.com/ubuntu focal-updates InRelease
-Hit:3 http://tw.archive.ubuntu.com/ubuntu focal-backports InRelease
-Get:4 http://security.ubuntu.com/ubuntu focal-security InRelease [109 kB]
-Get:5 http://security.ubuntu.com/ubuntu focal-security/main amd64 Packages [623 kB]
-Get:6 http://security.ubuntu.com/ubuntu focal-security/main amd64 DEP-11 Metadata [24.3 kB]
-Get:7 http://security.ubuntu.com/ubuntu focal-security/universe amd64 Packages [555 kB]
-Get:8 http://security.ubuntu.com/ubuntu focal-security/universe amd64 DEP-11 Metadata [58.2 kB]
-Fetched 1369 kB in 4s (323 kB/s)
-Reading package lists...
-Reading package lists...
-Building dependency tree...
-Reading state information...
-The following additional packages will be installed:
-  libmsgpackc2
-The following NEW packages will be installed:
-  libmsgpackc2 tmate
-0 upgraded, 2 newly installed, 0 to remove and 8 not upgraded.
-Need to get 0 B/264 kB of archives.
-After this operation, 755 kB of additional disk space will be used.
-Selecting previously unselected package libmsgpackc2:amd64.
-(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 197765 files and directories currently installed.)
-Preparing to unpack .../libmsgpackc2_3.0.1-3_amd64.deb ...
-Unpacking libmsgpackc2:amd64 (3.0.1-3) ...
-Selecting previously unselected package tmate.
-Preparing to unpack .../tmate_2.4.0-1_amd64.deb ...
-Unpacking tmate (2.4.0-1) ...
-Setting up libmsgpackc2:amd64 (3.0.1-3) ...
-Setting up tmate (2.4.0-1) ...
-Processing triggers for man-db (2.9.1-1) ...
-Processing triggers for libc-bin (2.31-0ubuntu9.2) ...
