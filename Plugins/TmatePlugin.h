@@ -6,7 +6,7 @@
 #include "../Util/include/AlertsPluginJson.h"
 
 #define SAMPLE_TMATE_PLUGIN      "TmatePlugin"
-#define PLUGINS_PATH                "/opt/allxon/plugINs/"
+#define PLUGINS_PATH                "/opt/allxon/plugIN/"
 #define SCRIPTS_STATES_PATH         "scripts/states/"
 #define SCRIPTS_COMMANDS_PATH       "scripts/commands/"
 

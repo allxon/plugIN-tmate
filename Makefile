@@ -16,7 +16,9 @@ MAIN_FOLDER = $(PWD)/MainSrc
 PLUGINS_FOLDER = $(PWD)/Plugins
 CONFIG_FOLDER = $(PWD)/config
 SCRIPTS_FOLDER = $(PWD)/scripts
-BIN_FOLDER = /opt/allxon/plugINs/$(APP_GUID)
+INSTALL_FOLDER = $(PWD)/install
+BIN_FOLDER = /opt/allxon/plugIN/$(APP_GUID)
+TMP_PKG_FOLDER = ./$(TARGET)
 
 CINC = -I$(MAIN_FOLDER) -I$(PWD)/websocket -I$(UTIL_FOLDER)/include -I$(PLUGINS_FOLDER)
 SRCDIR = Util/src Plugins MainSrc
@@ -61,15 +63,29 @@ clean:
 	$(QUIET)$(RM) $(OBJ_PATH)
 	$(QUIET)rm -f $(OUTPUTPATH)/$(TARGET)
 
-install: $(OUTPUTPATH)/$(TARGET)
-	$(QUIET)sudo mkdir $(BIN_FOLDER)
+install: $(OUTPUTPATH)/$(TARGET) $(CONFIG_FOLDER) $(SCRIPTS_FOLDER)
+ifneq (ls $(BIN_FOLDER),"")
+	$(QUIET)sudo $(RM) $(BIN_FOLDER)
+endif
+	$(QUIET)sudo mkdir -p $(BIN_FOLDER)
 	$(QUIET)sudo cp $(OUTPUTPATH)/$(TARGET) $(BIN_FOLDER)/
-	$(QUIET)sudo cp -r $(CONFIG_FOLDER) $(BIN_FOLDER)/
-	$(QUIET)sudo cp -r $(SCRIPTS_FOLDER) $(BIN_FOLDER)/
+	$(QUIET)sudo cp -r $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(BIN_FOLDER)/
 	$(QUIET)$(ECHO) "$(TARGET) and config, scripts files are copied to $(BIN_FOLDER)/"
 
 uninstall:
 	$(QUIET)sudo $(RM) $(BIN_FOLDER)
 	$(QUIET)$(ECHO) "$(TARGET) is removed."
+
+package: $(OUTPUTPATH)/$(TARGET) $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(INSTALL_FOLDER)
+ifneq (ls $(TMP_PKG_FOLDER),"")
+	$(QUIET)$(RM) $(TMP_PKG_FOLDER)
+endif
+	$(QUIET)mkdir -p $(TMP_PKG_FOLDER)/$(APP_GUID)
+	$(QUIET)cp $(OUTPUTPATH)/$(TARGET) $(TMP_PKG_FOLDER)/$(APP_GUID)/
+	$(QUIET)cp -r $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(TMP_PKG_FOLDER)/$(APP_GUID)/
+	$(QUIET)cp $(INSTALL_FOLDER)/* $(TMP_PKG_FOLDER)/
+	$(QUIET)tar -zcf $(OUTPUTPATH)/$(TARGET).tar.gz $(TMP_PKG_FOLDER)
+	$(QUIET)rm -rf $(TMP_PKG_FOLDER)
+	$(QUIET)$(ECHO) "The $(TARGET) app related files are packaged to ./output/$(TARGET).tar.gz"
 
 rebuild: clean compile
