@@ -14,7 +14,6 @@
 using namespace std;
 
 #define DEBUG
-// #define TEST_WEBSOCKET_ONLY
 #define LAUNCH_AGENT
 #define BDM_AGENT "BDM_Agent"
 #define PID_FILE "/var/run/tmatePlugin.pid"
@@ -150,32 +149,6 @@ int launchAgent()
 }
 #endif
 
-#ifdef TEST_WEBSOCKET_ONLY
-void On_open(void* c, websocketpp::connection_hdl hdl)
-{
-    WebClient *ptr = (WebClient *)c;
-    UTL_LOG_INFO("Websocket connection established.");
-}
-
-void On_fail(void* c, websocketpp::connection_hdl hdl)
-{
-    UTL_LOG_INFO("on_fail");
-    WebClient *ptr = (WebClient *)c;
-    ptr->get_alog().write(websocketpp::log::alevel::app, "Connection Failed");
-    ptr->close(hdl, websocketpp::close::status::normal, "Connection closed by server.");
-    ptr->stop();
-}
-
-void On_close(void* c, websocketpp::connection_hdl hdl)
-{
-    WebClient *ptr = (WebClient *)c;
-    
-    UTL_LOG_INFO("The server is shutdown! Disconnect connection\n");
-    ptr->close(hdl, websocketpp::close::status::normal, "Connection closed by server.");
-    ptr->stop();
-}
-#endif
-
 int main(int argc, char **argv) 
 {
     Log start; // start Logging
@@ -195,43 +168,6 @@ int main(int argc, char **argv)
     if (argc > 1 && strcmp(argv[1], "test") == 0)
     {
         // Test...
-#ifdef TEST_WEBSOCKET_ONLY
-        string url = "ws://127.0.0.1:5566";
-        UTL_LOG_INFO("url: %s", url.c_str());
-        WebClient client;
-        try {
-            UTL_LOG_INFO("==> set_access_channels <==");
-            client.set_access_channels(websocketpp::log::alevel::none);
-            UTL_LOG_INFO("==> clear_access_channels <==");
-            client.clear_access_channels(websocketpp::log::alevel::frame_payload|websocketpp::log::alevel::frame_header|websocketpp::log::alevel::control|websocketpp::log::alevel::all);
-            UTL_LOG_INFO("==> init_asio <==");
-            client.init_asio();
-            // Register out handlers
-            client.set_open_handler(bind(&On_open, &client, placeholders::_1));
-            client.set_fail_handler(bind(&On_fail, &client, placeholders::_1));
-            client.set_close_handler(bind(&On_close, &client, placeholders::_1));
-            // the event loop starts
-            websocketpp::lib::error_code ec;
-            UTL_LOG_INFO("==> get_connection <==");
-            WebClient::connection_ptr con = client.get_connection(url, ec);
-            UTL_LOG_INFO("==> connect <==");
-            client.connect(con);
-            // Start the ASIO io_service run loop
-            UTL_LOG_INFO("==> run <==");
-            client.run();
-            while (1)
-            {
-                sleep(30);
-            };
-            UTL_LOG_INFO("==> end <==");
-        } catch (const std::exception & e) {
-            printf("Exception: %s\n", e.what());
-        } catch (websocketpp::lib::error_code e) {
-            printf("Exception: %s\n", e.message().c_str());
-        } catch (...) {
-            printf("Other exception\n");
-        }
-#endif
     }
     else
     {
