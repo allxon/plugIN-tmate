@@ -83,9 +83,10 @@ endif
 	$(QUIET)mkdir -p $(TMP_PKG_FOLDER)/$(APP_GUID)
 	$(QUIET)cp $(OUTPUTPATH)/$(TARGET) $(TMP_PKG_FOLDER)/$(APP_GUID)/
 	$(QUIET)cp -r $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(TMP_PKG_FOLDER)/$(APP_GUID)/
-	$(QUIET)cp $(INSTALL_FOLDER)/* $(TMP_PKG_FOLDER)/
-	$(QUIET)tar -zcf $(OUTPUTPATH)/$(TARGET).tar.gz $(TMP_PKG_FOLDER)
+	$(QUIET)cp $(INSTALL_FOLDER)/uninstall_plugIN.sh $(TMP_PKG_FOLDER)/$(APP_GUID)/
+	$(QUIET)cp $(INSTALL_FOLDER)/install_plugIN.sh $(TMP_PKG_FOLDER)/
+	$(QUIET)zip -r $(OUTPUTPATH)/$(TARGET) $(TMP_PKG_FOLDER)
 	$(QUIET)rm -rf $(TMP_PKG_FOLDER)
-	$(QUIET)$(ECHO) "The $(TARGET) app related files are packaged to ./output/$(TARGET).tar.gz"
+	$(QUIET)$(ECHO) "The $(TARGET) app related files are packaged to ./output/$(TARGET).zip"
 
 rebuild: clean compile
