@@ -310,23 +310,6 @@ int UTLShm_Open(const char* name, int oflag, mode_t mode)
     return rv;
 }
 
-#ifndef _SUNIX_PLATFORM_
-int UTL_Fallocate(int fd, off_t offset, off_t len)
-{
-    int rv = VPL_OK;
-    int rc;
-
-    rc = posix_fallocate(fd, offset, len);
-
-    if (rc != 0) {
-        // posix_fallocate() returns zero on success, or an error number on failure.  Note that errno is not set.
-        rv = VPLError_XlatErrno(rc);
-    }
-
-    return rv;
-}
-#endif
-
 int UTL_Mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset, void **out)
 {
     int rv = VPL_OK;

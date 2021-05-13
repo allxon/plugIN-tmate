@@ -380,18 +380,6 @@ static UTLTHREAD_FN_DECL NotifyUpdateThread(void* arg)
             }
             if (updatePluginObj && updatePluginObj->IsUpdated())
             {
-#ifdef _ARM_PLATFORM_
-                ifstream f(PLUGIN_WORKING_FILE);
-                if (!f.good())
-                {
-                    long nowEpoch = time(NULL);
-                    if (nowEpoch - updateEpoch > 5)
-                    {
-                        retryTimes = 0;
-                        system("touch /mnt/user/SyncAgent/pluginstate");
-                    }
-                }
-#endif
                 sleep(3);
             }
         };
@@ -441,9 +429,6 @@ void CWebSocketClient::SendNotifyPluginUpdate()
             if (SendPluginNotify(this, line)) updateJsonObject->SetUpdated(true);
             // UTL_LOG_INFO("Notify plugin Update: %s", line);
             free(line);
-#ifdef _ARM_PLATFORM_
-            updateEpoch = time(NULL);
-#endif
             CWebsocketConnected* state = (CWebsocketConnected*)currConnState;
             connection->toggle();
         }
@@ -601,19 +586,11 @@ void CWebSocketClient::Initial()
         m_client.set_reuse_addr(true);
 
         // Register our handlers
-#ifdef  _ARM_PLATFORM_
-        m_client.set_open_handler(bind(&On_open,this,::_1));
-        m_client.set_fail_handler(bind(&On_fail,this,::_1));
-        m_client.set_message_handler(bind(&On_message,this,::_1,::_2));
-        m_client.set_close_handler(bind(&On_close, this,::_1));
-        m_client.set_tls_init_handler(bind(&on_tls_init));
-#else
         m_client.set_open_handler(bind(&On_open,this,placeholders::_1));
         m_client.set_fail_handler(bind(&On_fail,this,placeholders::_1));
         m_client.set_message_handler(bind(&On_message,this,placeholders::_1,placeholders::_2));
         m_client.set_close_handler(bind(&On_close, this,placeholders::_1));
         m_client.set_tls_init_handler(bind(&On_tls_init));
-#endif
     } catch(const exception & e) {
         UTL_LOG_ERROR("Exception: %s\n", e.what());
     } catch(websocketpp::lib::error_code e) {
@@ -705,18 +682,6 @@ void CWebSocketClient::SignalHandler(int signal) {
             return;
     }
 }
-
-#ifdef _ARM_PLATFORM_
-void CWebSocketClient::ClearPluginState()
-{
-    ifstream f(PLUGIN_WORKING_FILE);
-    if (f.good())
-    {
-        remove(PLUGIN_WORKING_FILE);
-        UTL_LOG_INFO("pluginstate is removed? %d", f.good());
-    }
-}
-#endif
 
 bool CWebSocketClient::IsErrorMessage(const char* command)
 {

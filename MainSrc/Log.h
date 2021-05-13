@@ -5,18 +5,7 @@
 class Log
 {
 public:
-#if (defined _SUNIX_PLATFORM_) || (defined _ARM_PLATFORM_)
     Log(
-        std::string Path = "/mnt/user/SyncAgent",
-        std::string TitleFileName = "device_plugin",
-        unsigned int MaxSize = 512*1024
-    ):path_(Path),titlefilename_(TitleFileName),maxsize_(MaxSize)
-    {
-        init();
-    }
-#else
-    Log(
-        // std::string Path = "/var/lib/SyncAgent",
         std::string Path = "",
         std::string TitleFileName = "plugIN",
         unsigned int MaxSize = 10*1024*1024
@@ -24,7 +13,6 @@ public:
     {
         init();
     }
-#endif
     std::string GetSelfPath();
 
 private:

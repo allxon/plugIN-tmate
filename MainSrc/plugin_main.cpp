@@ -190,9 +190,6 @@ int main(int argc, char **argv)
 
     connection = new CConnection(); // Create connection FSM
     // UTL_LOG_INFO("connection state = %s", typeid(connection->getCurrentState()).name());
-#ifdef _ARM_PLATFORM_
-    CWebSocketClient::ClearPluginState();
-#endif
 
     UTL_LOG_INFO("argc = %d, argv[1] = %s", argc, argv[1]);
     if (argc > 1 && strcmp(argv[1], "test") == 0)
@@ -210,18 +207,9 @@ int main(int argc, char **argv)
             UTL_LOG_INFO("==> init_asio <==");
             client.init_asio();
             // Register out handlers
-#ifdef  _ARM_PLATFORM_
-            UTL_LOG_INFO("==> set_open_handler On_open <==");
-            client.set_open_handler(bind(&On_open, &client, ::_1));
-            UTL_LOG_INFO("==> set_fail_handler On_fail <==");
-            client.set_open_handler(bind(&On_fail, &client, ::_1));
-            UTL_LOG_INFO("==> set_close_handler On_close <==");
-            client.set_close_handler(bind(&On_close, &client, ::_1));
-#else
             client.set_open_handler(bind(&On_open, &client, placeholders::_1));
             client.set_fail_handler(bind(&On_fail, &client, placeholders::_1));
             client.set_close_handler(bind(&On_close, &client, placeholders::_1));
-#endif
             // the event loop starts
             websocketpp::lib::error_code ec;
             UTL_LOG_INFO("==> get_connection <==");
@@ -344,9 +332,6 @@ CONNECT_WEBSOCKET:
         {
             if(wsclientobj->WebClientIsAlive() == false) {
                 UTL_LOG_WARN("Web socket connection is broken, retry connection!");
-#ifdef _ARM_PLATFORM_
-                CWebSocketClient::ClearPluginState();
-#endif
                 if (wsclientobj)
                 {
                     delete(wsclientobj);
@@ -402,9 +387,6 @@ CONNECT_WEBSOCKET:
     }
 
 EXIT:
-#ifdef _ARM_PLATFORM_
-    CWebSocketClient::ClearPluginState();
-#endif
     if (connection) delete connection;
     UTL_LOG_INFO("plugIN is terminated.");
     return 0;

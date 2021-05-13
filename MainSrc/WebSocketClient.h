@@ -26,9 +26,6 @@ extern int retryConnectWebsocket;
 
 #define IP_LOCALHOST        "127.0.0.1"
 #define AGENT_WSS_PORT      "55688"
-#ifdef _ARM_PLATFORM_
-#define PLUGIN_WORKING_FILE "/mnt/user/SyncAgent/pluginstate"
-#endif
 
 
 typedef websocketpp::client<websocketpp::config::asio_tls_client> WebClient;
@@ -67,9 +64,6 @@ public:
     static ContextPtr On_tls_init();
     static int ExponentialRetryPause(int retryTimes);
     static void SignalHandler(int signal);
-#ifdef _ARM_PLATFORM_
-    static void ClearPluginState();
-#endif
 
 #if defined(TEST_UPDATE)
     CPluginSample *GetSamplePlugin() { return m_plugin; }
