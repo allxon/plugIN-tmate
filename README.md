@@ -66,3 +66,36 @@ After installed all dependency packages, you can build this project under the fo
  $ make package
  ```
 
+## Modify source code
+
+- Log file path - You can modify the log output path in /MainSrc/Log.cpp. Currently the log files will be stored under "/var/log/allxon/plugIN/[appGUID]/[appName]/logs/[TitleFileName]/[TitleFileName].[YYYYMMDD_hhmmss_xxxxxx].log
+
+- Customize your own tmate plugIN - Modify /Plugins/TmatePlugin.cpp and its header file to add or modify the CTmatePlugin class. This class is derived from CPluginSample class which keeps basic configurations of this plugin, including reading the plugin_config_xxx.json properties, i.e., if sending API message as minified json?, the Agent plugIN API version (only support v2 currently), the appGUIDj and its accessKey, and reading the xxxPluginUpdate.json which is the registration API of this plugIN for later use. You can add methods used specifically for this plugIN in the CTmatePlugin class, or create your own plugIN class derived from CPluginSample class.
+
+- Update the allxon plugIN SDK to a new version - put the header files to /Util/include/ folder and its static or shared lib to /lib/ folder. Or you can put them to the place where you assigned in the Makefile.
+
+- states will be updated once the plugIN is running and before it was stopped, and every 60 seconds during the plugIN is alive. You can modify this behavior in the static function NotifyDataThread() in /MainSrc/WebSocketClient.cpp
+
+- command ack will be sent after received a command and when the command executed with results message regarding its result status. You can modify the results or ack behaviors in CTmatePlugin::ExecuteReceivedCommand method.
+
+## What does Scripts do?
+
+- install_plugIN.sh - To move the tmate_plugIN executive and related script files in the package to specific location. Then run startPlugin.sh to launch tmate_plugIN.
+
+- uninstall_plugIN.sh - First to stop running tmate_plugIN on the device. Then to remove tmate plugIN related files from the device. This script will be called when you remove the tmate plugIN via allxon DMS portal.
+
+- startPlugin.sh - To launch tmate plugIN on the device. Set the full path of this file in the xxxPluginUpdate.json to "startCommand" property to enable starting the plugIN on the portal. The "Start" button will be shown on the title bar of plugIN card of this plugIN.
+
+- stopPlugin.sh - To stop running the tmate plugIN on the device. Set the full path of this file in the xxxPluginUpdate.json to "stopCommand" property to enable stopping the plugIN on the portal. The "Stop" button will be shown on the title bar of plugIN card of this plugIN.
+
+- commands
+    * install.sh - To install tmate application on this device.
+    * uninstall.sh - To uninstall tmate application on this device.
+    * start.sh - To open a remote terminal instant sharing session.
+    * stop.sh - To close the opened session.
+
+- states
+    * version.sh - To get the tmate software version number
+    * status.sh - To get the tmate current status, i.e. Not running, Open and Closed.
+    * ssh.sh - To get the opened session link for ssh.
+    * web.sh - To get the opened session link for web remote terminal.
