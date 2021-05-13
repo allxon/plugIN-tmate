@@ -22,8 +22,8 @@ TMP_PKG_FOLDER = ./$(TARGET)
 
 CINC = -I$(MAIN_FOLDER) -I$(PWD)/websocket -I$(UTIL_FOLDER)/include -I$(PLUGINS_FOLDER)
 SRCDIR = Util/src Plugins MainSrc
-CLIB = -lboost_system -lboost_chrono -lboost_random -ladmplugin -lrt -lpthread -lssl -lcrypto
-CLIB += $(PWD)/lib/libargon2.a
+CLIB = $(PWD)/lib/libadmplugin.so $(PWD)/lib/libargon2.a
+CLIB += -lboost_system -lboost_chrono -lboost_random -lrt -lpthread -lssl -lcrypto
 
 C_SRCDIR = $(SRCDIR)
 C_SOURCES = $(foreach d,$(C_SRCDIR),$(wildcard $(d)/*.c))
@@ -89,4 +89,4 @@ endif
 	$(QUIET)rm -rf $(TMP_PKG_FOLDER)
 	$(QUIET)$(ECHO) "The $(TARGET) app related files are packaged to ./output/$(TARGET).zip"
 
-rebuild: clean compile
+rebuild: clean default
