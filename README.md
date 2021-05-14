@@ -68,15 +68,15 @@ After installed all dependency packages, you can build this project under the fo
 
 ## Modify source code
 
-- Log file path - You can modify the log output path in /MainSrc/Log.cpp. Currently the log files will be stored under "/var/log/allxon/plugIN/[appGUID]/[appName]/logs/[TitleFileName]/[TitleFileName].[YYYYMMDD_hhmmss_xxxxxx].log
+- **Log file path** - You can modify the log output path in /MainSrc/Log.cpp. Currently the log files will be stored under **"/var/log/allxon/plugIN/[appGUID]/[appName]/logs/[TitleFileName]/[TitleFileName].[YYYYMMDD_hhmmss_xxxxxx].log**
 
-- Customize your own tmate plugIN - Modify /Plugins/TmatePlugin.cpp and its header file to add or modify the CTmatePlugin class. This class is derived from CPluginSample class which keeps basic configurations of this plugin, including reading the plugin_config_xxx.json properties, i.e., if sending API message as minified json?, the Agent plugIN API version (only support v2 currently), the appGUIDj and its accessKey, and reading the xxxPluginUpdate.json which is the registration API of this plugIN for later use. You can add methods used specifically for this plugIN in the CTmatePlugin class, or create your own plugIN class derived from CPluginSample class.
+- **Customize your own tmate plugIN** - Modify **/Plugins/TmatePlugin.cpp** and its header file to add or modify the **CTmatePlugin** class. This class is derived from _CPluginSample_ class which keeps basic configurations of this plugin, including reading the **plugin_config_xxx.json** properties, i.e., if sending API message as minified json?, the Agent plugIN API version (only support v2 currently), the appGUID and its accessKey, and reading the **xxxPluginUpdate.json** which is the registration API of this plugIN for later use. You can add methods used specifically for this plugIN in the _CTmatePlugin_ class, or create your own plugIN class derived from CPluginSample class.
 
-- Update the allxon plugIN SDK to a new version - put the header files to /Util/include/ folder and its static or shared lib to /lib/ folder. Or you can put them to the place where you assigned in the Makefile.
+- **Update the allxon plugIN SDK to a new version** - put the header files to _/Util/include/_ folder and its static or shared lib to _/lib/_ folder. Or you can put them to the place where you assigned in the Makefile.
 
-- states will be updated once the plugIN is running and before it was stopped, and every 60 seconds during the plugIN is alive. You can modify this behavior in the static function NotifyDataThread() in /MainSrc/WebSocketClient.cpp
+- _states_ will be updated once the plugIN is running and before it was stopped, and every 60 seconds during the plugIN is alive. You can modify this behavior in the static function **_NotifyDataThread()_** in _/MainSrc/WebSocketClient.cpp_
 
-- command ack will be sent after received a command and when the command executed with results message regarding its result status. You can modify the results or ack behaviors in CTmatePlugin::ExecuteReceivedCommand method.
+- _command_ ack will be sent after received a command and when the command executed with results message regarding its result status. You can modify the results or ack behaviors in CTmatePlugin::ExecuteReceivedCommand method.
 
 ## What does Scripts do?
 
