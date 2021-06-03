@@ -10,8 +10,8 @@
 #include "../Util/include/Utl_Log.h"
 #include "../Util/include/vpl_error.h"
 #include "../Util/include/argon2.h"
-#include "../Plugins/TmatePlugin.h"
 #include "ConcreteStates.h"
+#include "../Plugins/TmatePlugin.h"
 
 using namespace std;
 
@@ -440,6 +440,25 @@ void CWebSocketClient::SendNotifyPluginUpdate()
     }
 }
 
+bool CWebSocketClient::SendPluginNotify(CWebSocketClient *ptr, const char *notify)
+{
+    // send notify
+    if (ptr && notify)
+    {
+        websocketpp::lib::error_code ec;
+        ptr->m_pwebclient->pclient->send(ptr->m_pwebclient->phd, notify, websocketpp::frame::opcode::TEXT, ec);
+        UTL_LOG_INFO("Notify: %s", notify);
+
+        if (ec)
+        {
+            UTL_LOG_ERROR("Error code: %s", ec.message().c_str());
+            return false;
+        }
+        return true;
+    }
+    else return false;
+}
+
 void CWebSocketClient::TestSDKUpdateAlarms(const char *payload)
 {
     // UTL_LOG_INFO("===*** TestSDKUpdateAlarms() ***===:\n%s", payload);
@@ -516,28 +535,6 @@ static UTLTHREAD_FN_DECL NotifyDataThread(void* arg)
     return 0;
 }
 #endif
-
-#if defined(TEST_UPDATE)
-bool CWebSocketClient::SendPluginNotify(CWebSocketClient *ptr, const char *notify)
-{
-    // send notify
-    if (ptr && notify)
-    {
-        websocketpp::lib::error_code ec;
-        ptr->m_pwebclient->pclient->send(ptr->m_pwebclient->phd, notify, websocketpp::frame::opcode::TEXT, ec);
-        UTL_LOG_INFO("Notify: %s", notify);
-
-        if (ec)
-        {
-            UTL_LOG_ERROR("Error code: %s", ec.message().c_str());
-            return false;
-        }
-        return true;
-    }
-    else return false;
-}
-#endif
-
 
 CWebSocketClient::CWebSocketClient(string ipaddr, string port)
 {
