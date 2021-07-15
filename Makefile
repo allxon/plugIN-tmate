@@ -8,7 +8,7 @@ CFLAGS = -Os
 LDFLAGS = -lm
 
 APP_GUID = 286b0652-c5ef-46c0-aa8c-7b617bbf6ab9
-TARGET = tmate_plugIN
+TARGET = plugIN-tmate
 OBJ_PATH = objs
 OUTPUTPATH = $(PWD)/output
 UTIL_FOLDER = $(PWD)/Util
@@ -22,8 +22,9 @@ TMP_PKG_FOLDER = ./$(TARGET)
 
 CINC = -I$(MAIN_FOLDER) -I$(PWD)/websocket -I$(UTIL_FOLDER)/include -I$(PLUGINS_FOLDER)
 SRCDIR = Util/src Plugins MainSrc
-CLIB = $(PWD)/lib/libadmplugin.so $(PWD)/lib/libargon2.a
-CLIB += -lboost_system -lboost_chrono -lboost_random -lrt -lpthread -lssl -lcrypto
+
+CLIB = -ladmplugin -lboost_system -lboost_chrono -lboost_random -lrt -lpthread -lssl -lcrypto
+CLIB += $(PWD)/lib/libargon2.a
 
 C_SRCDIR = $(SRCDIR)
 C_SOURCES = $(foreach d,$(C_SRCDIR),$(wildcard $(d)/*.c))
@@ -37,7 +38,7 @@ ALLOBJS = $(wildcard $(OBJ_PATH)/*.o)
 
 BUILD_INFO_INCLUDE_FILE = $(PWD)/Util/include/build_info.h
 BUILD_DATE := $(shell date '+%Y%m%d-%H%M%S')
-BUILD_VERSION := '1.06.2001'
+BUILD_VERSION := '1.06.2002'
 
 
 default:init compile
@@ -57,6 +58,7 @@ init:
 
 compile:$(C_OBJS) $(CPP_OBJS)
 	$(CC) $^ -o $(TARGET) $(LDFLAGS) $(CLIB)
+	$(QUIET)sudo mkdir -p $(OUTPUTPATH)
 	$ mv $(TARGET) $(OUTPUTPATH)/
 
 clean:

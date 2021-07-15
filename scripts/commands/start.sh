@@ -21,7 +21,7 @@ done
 if [ $UID -eq 0 ]; then
     exec > "${OUTPUT}"
     which tmate > /dev/null || id tmate > /dev/null 2>&1 || { echo "Not installed"; exit 0; }
-    chown tmate:tmate "${OUTPUT}"
+    chown tmate:sudo "${OUTPUT}"
     echo -e "${PASSWORD:=password}\n${PASSWORD:=password}" | passwd -q tmate 2>&1
     exec su -c "$0" tmate "$@"
     exit $?

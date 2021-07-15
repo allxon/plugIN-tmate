@@ -148,6 +148,7 @@ public:
 
     CUpdatePluginJson *GetNotifyPluginUpdate();
     CUpdatePluginJson *GetNotifyPluginUpdate(const char *apiVersion, const char *accessKey);
+    void UpdateNotifyPluginUpdateData();
 
     std::string appGUID;
     std::string appName;

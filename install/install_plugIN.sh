@@ -1,8 +1,12 @@
 #!/bin/bash
 
-cd /var/lib/SyncAgent/download/tmp/tmate_plugIN
-sudo mv 286b0652-c5ef-46c0-aa8c-7b617bbf6ab9 /opt/allxon/plugIN/
-echo "plugIN is installed to /opt/allxon/plugIN/286b0652-c5ef-46c0-aa8c-7b617bbf6ab9/"
-cd /var/lib/SyncAgent/download/
-rm -rf tmp
-sudo /opt/allxon/plugIN/286b0652-c5ef-46c0-aa8c-7b617bbf6ab9/scripts/startPlugin.sh
+plugin_appguid=286b0652-c5ef-46c0-aa8c-7b617bbf6ab9
+plugin_folder=plugIN-tmate
+
+sudo mkdir -p /opt/allxon/plugIN/
+
+sudo cp -r /var/lib/SyncAgent/download/tmp/$plugin_folder/$plugin_appguid /opt/allxon/plugIN/
+echo "plugIN is installed to /opt/allxon/plugIN/$plugin_appguid/"
+
+sudo rm -rf /var/lib/SyncAgent/download/tmp
+sudo /opt/allxon/plugIN/$plugin_appguid/scripts/startPlugin.sh
