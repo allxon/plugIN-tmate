@@ -2,21 +2,28 @@ QUIET = @
 ECHO  = echo
 RM = rm -rf
 
+ENV = X86
+
 CC = g++
 GCC_GXX_WARNINGS = -Wall -Wno-error -Wno-packed -Wpointer-arith -Wredundant-decls -Wstrict-aliasing=3 -Wswitch-enum -Wundef -Wwrite-strings -Wextra -Wno-unused-parameter
 CFLAGS = -Os
 LDFLAGS = -lm
 
-APP_GUID = 286b0652-c5ef-46c0-aa8c-7b617bbf6ab9
+ifeq ($(ENV),X86)
+	APP_GUID = 286b0652-c5ef-46c0-aa8c-7b617bbf6ab9
+else ifeq ($(ENV),Jetson)
+	APP_GUID = 3ff0bf0a-17a0-47c0-b9f6-229191393182
+endif
 TARGET = plugIN-tmate
 OBJ_PATH = objs
-OUTPUTPATH = $(PWD)/output
+ENV_FOLDER = $(PWD)/$(ENV)
+OUTPUTPATH = $(ENV_FOLDER)/output
 UTIL_FOLDER = $(PWD)/Util
 MAIN_FOLDER = $(PWD)/MainSrc
 PLUGINS_FOLDER = $(PWD)/Plugins
-CONFIG_FOLDER = $(PWD)/config
+CONFIG_FOLDER = $(ENV_FOLDER)/config
 SCRIPTS_FOLDER = $(PWD)/scripts
-INSTALL_FOLDER = $(PWD)/install
+INSTALL_FOLDER = $(ENV_FOLDER)/install
 BIN_FOLDER = /opt/allxon/plugIN/$(APP_GUID)
 TMP_PKG_FOLDER = ./$(TARGET)
 
@@ -24,7 +31,7 @@ CINC = -I$(MAIN_FOLDER) -I$(PWD)/websocket -I$(UTIL_FOLDER)/include -I$(PLUGINS_
 SRCDIR = Util/src Plugins MainSrc
 
 CLIB = -ladmplugin -lboost_system -lboost_chrono -lboost_random -lrt -lpthread -lssl -lcrypto
-CLIB += $(PWD)/lib/libargon2.a
+CLIB += $(ENV_FOLDER)/lib/libargon2.a
 
 C_SRCDIR = $(SRCDIR)
 C_SOURCES = $(foreach d,$(C_SRCDIR),$(wildcard $(d)/*.c))
