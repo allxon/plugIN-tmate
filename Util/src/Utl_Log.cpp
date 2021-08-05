@@ -9,7 +9,7 @@
 #define UTL_LOG_DEFAULT_PRC                 "null"
 
 /// Smallest allowed limit.  If a smaller value is requested, it will be bumped up to this value instead.
-#define UTL_LOG_MIN_MAX_TOTAL_SIZE          (512 * 1024)
+#define UTL_LOG_MIN_MAX_TOTAL_SIZE          (5 * 512 * 1024)
 #define UTL_LOG_MAX_FILE_SIZE               (512 * 1024)       // Size for easier opening by editors
 
 #define UTL_LOG_SHM_OBJECT_NAME     "/LOG_Shm"

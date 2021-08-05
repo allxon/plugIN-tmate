@@ -3,7 +3,8 @@
 void Log::init()
 {
     path_ = GetSelfPath();
-    path_.replace(0, 4, "/var/log");
+    const std::string appPath =  "/opt/allxon/plugIN/";
+    path_.replace(0, path_.find(appPath)+appPath.length(), "/var/log/allxon/plugIN/");
     if(path_.empty() || titlefilename_.empty() || maxsize_== 0)
     {
         return void();

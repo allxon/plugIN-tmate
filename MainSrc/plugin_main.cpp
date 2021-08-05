@@ -152,6 +152,7 @@ int launchAgent()
 int main(int argc, char **argv) 
 {
     Log start; // start Logging
+    UTL_LOG_INFO("BUILD_INFO: %s", BUILD_INFO);
 
     if(!getLock()) // Check single instance app
     {

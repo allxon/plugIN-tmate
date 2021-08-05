@@ -360,24 +360,31 @@ static UTLTHREAD_FN_DECL NotifyUpdateThread(void* arg)
         while(ptr->WebClientIsAlive())
         {
             sleep(0);
-            if (ptr != NULL && ptr->m_wsConnectionOpened)
+            bool sentPluginUpdate = false;
+            int retry = 0;
+            while (!sentPluginUpdate)
             {
-                currConnState = connection->getCurrentState();
-                if (currConnState == &CWebsocketConnected::getInstance() || currConnState == &CDeviceOffline::getInstance())
+                if (ptr != NULL && ptr->m_wsConnectionOpened)
                 {
-                    if (currConnState == &CDeviceOffline::getInstance())
+                    currConnState = connection->getCurrentState();
+                    if (currConnState == &CWebsocketConnected::getInstance() || currConnState == &CDeviceOffline::getInstance())
                     {
-                        int delay = CWebSocketClient::ExponentialRetryPause(++retryTimes);
-                        UTL_LOG_INFO("DeviceOffline: sleep %d secs in the %d times.", delay, retryTimes);
-                        sleep(delay);
-                        connection->toggle();
+                        if (currConnState == &CDeviceOffline::getInstance())
+                        {
+                            int delay = CWebSocketClient::ExponentialRetryPause(++retryTimes);
+                            UTL_LOG_INFO("DeviceOffline: sleep %d secs in the %d times.", delay, retryTimes);
+                            sleep(delay);
+                            connection->toggle();
+                        }
+                        ptr->SendNotifyPluginUpdate();
+                        sentPluginUpdate = true;
+    #ifdef TEST_STATES_METRICS_EVENTS
+                        needCheckStates = true;
+    #endif
                     }
-                    ptr->SendNotifyPluginUpdate();
-#ifdef TEST_STATES_METRICS_EVENTS
-                    needCheckStates = true;
-#endif
                 }
-            }
+                sleep(ptr->ExponentialRetryPause(retry++));
+            };
             if (updatePluginObj && updatePluginObj->IsUpdated())
             {
                 sleep(3);

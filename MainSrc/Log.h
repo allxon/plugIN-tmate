@@ -7,8 +7,8 @@ class Log
 public:
     Log(
         std::string Path = "",
-        std::string TitleFileName = "plugIN",
-        unsigned int MaxSize = 10*1024*1024
+        std::string TitleFileName = "plugIN-tmate",
+        unsigned int MaxSize = 5*512*1024
     ):path_(Path),titlefilename_(TitleFileName),maxsize_(MaxSize)
     {
         init();
