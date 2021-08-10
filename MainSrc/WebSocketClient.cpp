@@ -378,9 +378,9 @@ static UTLTHREAD_FN_DECL NotifyUpdateThread(void* arg)
                         }
                         ptr->SendNotifyPluginUpdate();
                         sentPluginUpdate = true;
-    #ifdef TEST_STATES_METRICS_EVENTS
+#ifdef TEST_STATES_METRICS_EVENTS
                         needCheckStates = true;
-    #endif
+#endif
                     }
                 }
                 sleep(ptr->ExponentialRetryPause(retry++));
@@ -431,8 +431,9 @@ void CWebSocketClient::SendNotifyPluginUpdate()
         currConnState = connection->getCurrentState();
         if (currConnState == &CWebsocketConnected::getInstance())
         {
-            cJSON *updateJson = updateJsonObject->GetUpdateJsonObject();
-            char *line = GetSamplePlugin()->minify? cJSON_PrintUnformatted(updateJson) : cJSON_Print(updateJson);
+            bool minify = GetSamplePlugin()->minify;
+            cJSON *updateJson = updateJsonObject->RenewUpdateJsonObject(minify);
+            char *line = minify? cJSON_PrintUnformatted(updateJson) : cJSON_Print(updateJson);
             if (SendPluginNotify(this, line)) updateJsonObject->SetUpdated(true);
             // UTL_LOG_INFO("Notify plugin Update: %s", line);
             free(line);

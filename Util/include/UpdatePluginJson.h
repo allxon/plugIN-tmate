@@ -61,7 +61,8 @@ public:
     void SetUpdated(bool isUpdated) { m_isUpdated = isUpdated; }
     cJSON *GetJsonrpcRequest(cJSON *paramJson);
     cJSON *GetJsonrpcRequest(cJSON *paramJson, bool unformatted);
-    cJSON *CreateUpdateParamsObj(const char *appName, const char *displayName, std::string appType, const char *version, const char *startCommand, const char *stopCommand, cJSON *modulesJson); 
+    cJSON *RenewUpdateJsonObject(bool unformatted);
+    cJSON *CreateUpdateParamsObj(const char *appName, const char *displayName, std::string appType, const char *version, const char *startCommand, const char *stopCommand,cJSON *modulesJson); 
     static cJSON *CreateUpdateModulesItemJson(const char *moduleName, const char *displayName, const char *description, cJSON *properties, cJSON *states, cJSON *events,
         cJSON *metrics, cJSON *commands, cJSON *alarms);
     static cJSON *CreateUpdatePropertiesItemJson(const char *name, const char *displayName, const char *description,
