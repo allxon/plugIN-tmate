@@ -31,28 +31,27 @@ void registerSigHandler()
     sa.sa_flags = SA_RESTART;
     sigfillset(&sa.sa_mask);
 
-    if (sigaction(SIGINT, &sa, NULL) == -1) {
+    if (sigaction(SIGINT, &sa, NULL) == -1)
+    {
         perror("Error: cannot handle SIGINT"); // Should not happen
     }
 }
 
-int fdlock;
 int getLock(void)
 {
-  struct flock fl;
+    struct flock fl;
+    int fdlock;
 
-  fl.l_type = F_WRLCK;
-  fl.l_whence = SEEK_SET;
-  fl.l_start = 0;
-  fl.l_len = 1;
+    fl.l_type = F_WRLCK;
+    fl.l_whence = SEEK_SET;
+    fl.l_start = 0;
+    fl.l_len = 1;
 
-  if((fdlock = open(PID_FILE, O_WRONLY|O_CREAT, 0666)) == -1)
-    return 0;
+    if((fdlock = open(PID_FILE, O_WRONLY|O_CREAT, 0666)) == -1) return 0;
 
-  if(fcntl(fdlock, F_SETLK, &fl) == -1)
-    return 0;
+    if(fcntl(fdlock, F_SETLK, &fl) == -1) return 0;
 
-  return 1;
+    return 1;
 }
 
 string getCurrentDate()
@@ -64,7 +63,7 @@ string getCurrentDate()
     time (&rawtime);
     timeinfo = localtime(&rawtime);
 
-    strftime(buffer,sizeof(buffer),"%d-%m-%Y",timeinfo);
+    strftime(buffer, sizeof(buffer), "%d-%m-%Y", timeinfo);
 
     return string(buffer);
 }
@@ -94,15 +93,12 @@ int getProcIdByName(string procName)
                 {
                     // Keep first cmdline item which contains the program path
                     size_t pos = cmdLine.find('\0');
-                    if (pos != string::npos)
-                        cmdLine = cmdLine.substr(0, pos);
+                    if (pos != string::npos) cmdLine = cmdLine.substr(0, pos);
                     // Keep program name only, removing the path
                     pos = cmdLine.rfind('/');
-                    if (pos != string::npos)
-                        cmdLine = cmdLine.substr(pos + 1);
+                    if (pos != string::npos) cmdLine = cmdLine.substr(pos + 1);
                     // Compare against requested process name
-                    if (procName == cmdLine)
-                        pid = id;
+                    if (procName == cmdLine) pid = id;
                 }
             }
         }
@@ -231,7 +227,7 @@ CONNECT_WEBSOCKET:
 #endif
         CWebSocketClient *wsclientobj = new CWebSocketClient();
         wsclientobj->Initial();
-#if defined(TEST_UPDATE) || defined(TEST_LOCAL_COMMANDS)
+#if defined(TEST_UPDATE)
         if (argv[1] && strlen(argv[1]) > 0)
         {
             CPluginSampleConfig *config = new CPluginSampleConfig(argv[1]);

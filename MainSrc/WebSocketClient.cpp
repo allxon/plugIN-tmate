@@ -9,7 +9,6 @@
 #include "../Util/include/Utl_file.h"
 #include "../Util/include/Utl_Log.h"
 #include "../Util/include/vpl_error.h"
-#include "../Util/include/argon2.h"
 #include "ConcreteStates.h"
 #include "../Plugins/TmatePlugin.h"
 
@@ -356,35 +355,34 @@ static UTLTHREAD_FN_DECL NotifyUpdateThread(void* arg)
         }
 
         CUpdatePluginJson *updatePluginObj = ptr->GetSamplePlugin()->GetUpdateData()->GetNotifyPluginUpdate();
-        UTL_LOG_INFO("plugin update obj: %p", updatePluginObj);
+        // UTL_LOG_INFO("plugin update obj: %p", updatePluginObj);
+        int retry = 0;
         while(ptr->WebClientIsAlive())
         {
             sleep(0);
-            bool sentPluginUpdate = false;
-            int retry = 0;
-            while (!sentPluginUpdate)
+            if (ptr != NULL && ptr->m_wsConnectionOpened)
             {
-                if (ptr != NULL && ptr->m_wsConnectionOpened)
+                currConnState = connection->getCurrentState();
+                if (currConnState == &CWebsocketConnected::getInstance() || currConnState == &CDeviceOffline::getInstance())
                 {
-                    currConnState = connection->getCurrentState();
-                    if (currConnState == &CWebsocketConnected::getInstance() || currConnState == &CDeviceOffline::getInstance())
+                    if (currConnState == &CDeviceOffline::getInstance())
                     {
-                        if (currConnState == &CDeviceOffline::getInstance())
-                        {
-                            int delay = CWebSocketClient::ExponentialRetryPause(++retryTimes);
-                            UTL_LOG_INFO("DeviceOffline: sleep %d secs in the %d times.", delay, retryTimes);
-                            sleep(delay);
-                            connection->toggle();
-                        }
-                        ptr->SendNotifyPluginUpdate();
-                        sentPluginUpdate = true;
-#ifdef TEST_STATES_METRICS_EVENTS
-                        needCheckStates = true;
-#endif
+                        int delay = CWebSocketClient::ExponentialRetryPause(++retryTimes);
+                        UTL_LOG_INFO("DeviceOffline: sleep %d secs in the %d times.", delay, retryTimes);
+                        sleep(delay);
+                        connection->toggle();
                     }
+                    ptr->SendNotifyPluginUpdate();
+#ifdef TEST_STATES_METRICS_EVENTS
+                    needCheckStates = true;
+#endif
                 }
-                sleep(ptr->ExponentialRetryPause(retry++));
-            };
+            }
+            else
+            {
+                sleep(CWebSocketClient::ExponentialRetryPause(retry++));
+                UTL_LOG_INFO("Waiting for WebSocket connection to open...%d", retry);
+            }
             if (updatePluginObj && updatePluginObj->IsUpdated())
             {
                 sleep(3);
@@ -423,10 +421,13 @@ static UTLTHREAD_FN_DECL NotifyCommandThread(void* arg)
 void CWebSocketClient::SendNotifyPluginUpdate()
 {
     UTL_LOG_INFO("NotifyPluginUpdate()");
-    if (!GetSamplePlugin()) UTL_LOG_WARN("Unknown plugin object.");
+    if (!GetSamplePlugin())
+    {
+        UTL_LOG_WARN("Unknown plugin object.");
+        return;
+    }
 
     CUpdatePluginJson *updateJsonObject = GetSamplePlugin()->GetUpdateData()->GetNotifyPluginUpdate();
-    
     if (updateJsonObject != NULL) {
         currConnState = connection->getCurrentState();
         if (currConnState == &CWebsocketConnected::getInstance())
@@ -505,7 +506,7 @@ static UTLTHREAD_FN_DECL NotifyDataThread(void* arg)
                 {
                     // Run states' scripts to see if there're changes need to be notified.
                     bitset<4> updateMask;
-                    /*if (stateCount == 1)*/ updateMask.set();
+                    /*if (stateCount == 1) */updateMask.set();
                     // else updateMask.set().set(1,0);
 #ifdef DEBUG
                     UTL_LOG_INFO("updateMask = %s", updateMask.to_string<char,std::string::traits_type,std::string::allocator_type>().c_str());

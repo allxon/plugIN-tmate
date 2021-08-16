@@ -15,7 +15,7 @@ else ifeq ($(ENV),Jetson)
 	APP_GUID = 3ff0bf0a-17a0-47c0-b9f6-229191393182
 endif
 TARGET = plugIN-tmate
-OBJ_PATH = objs
+OBJ_PATH = $(ENV_FOLDER)/objs
 ENV_FOLDER = $(PWD)/$(ENV)
 OUTPUTPATH = $(ENV_FOLDER)/output
 UTIL_FOLDER = $(PWD)/Util
@@ -73,7 +73,7 @@ clean:
 	$(QUIET)rm -f $(OUTPUTPATH)/$(TARGET)
 
 install: $(OUTPUTPATH)/$(TARGET) $(CONFIG_FOLDER) $(SCRIPTS_FOLDER)
-ifneq (ls $(BIN_FOLDER),"")
+ifneq (ls $(BIN_FOLDER),)
 	$(QUIET)sudo $(RM) $(BIN_FOLDER)
 endif
 	$(QUIET)sudo mkdir -p $(BIN_FOLDER)
@@ -86,7 +86,7 @@ uninstall:
 	$(QUIET)$(ECHO) "$(TARGET) is removed."
 
 package: $(OUTPUTPATH)/$(TARGET) $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(INSTALL_FOLDER)
-ifneq (ls $(TMP_PKG_FOLDER),"")
+ifneq (ls $(TMP_PKG_FOLDER),)
 	$(QUIET)$(RM) $(TMP_PKG_FOLDER)
 endif
 	$(QUIET)mkdir -p $(TMP_PKG_FOLDER)/$(APP_GUID)

@@ -366,7 +366,7 @@ void CTmatePlugin::RunPluginScriptCmdOutput(string scriptCmd, string cmdParam, b
             else
             {
                 stringstream ss;
-	            ss << wexitstatus;
+                ss << wexitstatus;
                 message.append("Fail (").append(ss.str()).append("): ").append(ReadOutput(scriptOutput));
                 UTL_LOG_INFO("Run command fail, script exit code: %d\n", wexitstatus);
                 result = false;

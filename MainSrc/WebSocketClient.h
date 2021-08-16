@@ -65,13 +65,10 @@ public:
     static int ExponentialRetryPause(int retryTimes);
     static void SignalHandler(int signal);
 
-#if defined(TEST_UPDATE)
+#ifdef TEST_UPDATE
     CPluginSample *GetSamplePlugin() { return m_plugin; }
     void SetSamplePlugin(CPluginSample *plugin) { m_plugin = plugin; }
     bool SendPluginNotify(CWebSocketClient *ptr, const char *notify);
-#endif
-
-#ifdef TEST_UPDATE
     void SendNotifyPluginUpdate();
     CCommandPluginJson *GetReceivedCommand() { return m_receivedCommand; }
     void SetReceivedCommand(CCommandPluginJson *receivedCommand) { m_receivedCommand = receivedCommand; }
@@ -108,17 +105,13 @@ private:
     UTLCond_t m_NotifyCMDcond;
     bool m_endWebSocket;
 
-#if defined(TEST_UPDATE)
-    CPluginSample *m_plugin;
-#endif
-
 #ifdef TEST_UPDATE
+    CPluginSample *m_plugin;
     CCommandPluginJson *m_receivedCommand;
     CAlarmUpdatePluginJson *m_alarmUpdateObj;
     UTLDetachableThreadHandle_t m_threadUpdateHandle;
     UTLDetachableThreadHandle_t m_threadCommandHandle;
 #endif
-
 #ifdef TEST_STATES_METRICS_EVENTS
     UTLDetachableThreadHandle_t m_threadDataHandle;
 #endif
