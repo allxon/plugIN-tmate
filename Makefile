@@ -6,7 +6,7 @@ ENV = X86
 
 CC = g++
 GCC_GXX_WARNINGS = -Wall -Wno-error -Wno-packed -Wpointer-arith -Wredundant-decls -Wstrict-aliasing=3 -Wswitch-enum -Wundef -Wwrite-strings -Wextra -Wno-unused-parameter
-CFLAGS = -Os
+CFLAGS = -Os -DDEBUG
 LDFLAGS = -lm
 
 ifeq ($(ENV),X86)
@@ -15,14 +15,15 @@ else ifeq ($(ENV),Jetson)
 	APP_GUID = 3ff0bf0a-17a0-47c0-b9f6-229191393182
 endif
 TARGET = plugIN-tmate
-OBJ_PATH = $(ENV_FOLDER)/objs
-ENV_FOLDER = $(PWD)/$(ENV)
-OUTPUTPATH = $(ENV_FOLDER)/output
 UTIL_FOLDER = $(PWD)/Util
 MAIN_FOLDER = $(PWD)/MainSrc
 PLUGINS_FOLDER = $(PWD)/Plugins
-CONFIG_FOLDER = $(ENV_FOLDER)/config
 SCRIPTS_FOLDER = $(PWD)/scripts
+ENV_FOLDER = $(PWD)/$(ENV)
+OBJ_PATH = $(ENV_FOLDER)/objs
+OUTPUTPATH = $(ENV_FOLDER)/output
+LIB_FOLDER = $(ENV_FOLDER)/lib
+CONFIG_FOLDER = $(ENV_FOLDER)/config
 INSTALL_FOLDER = $(ENV_FOLDER)/install
 BIN_FOLDER = /opt/allxon/plugIN/$(APP_GUID)
 TMP_PKG_FOLDER = ./$(TARGET)
@@ -31,7 +32,7 @@ CINC = -I$(MAIN_FOLDER) -I$(PWD)/websocket -I$(UTIL_FOLDER)/include -I$(PLUGINS_
 SRCDIR = Util/src Plugins MainSrc
 
 CLIB = -ladmplugin -lboost_system -lboost_chrono -lboost_random -lrt -lpthread -lssl -lcrypto
-CLIB += $(ENV_FOLDER)/lib/libargon2.a
+CLIB += $(LIB_FOLDER)/libargon2.a
 
 C_SRCDIR = $(SRCDIR)
 C_SOURCES = $(foreach d,$(C_SRCDIR),$(wildcard $(d)/*.c))
@@ -65,7 +66,7 @@ init:
 
 compile:$(C_OBJS) $(CPP_OBJS)
 	$(CC) $^ -o $(TARGET) $(LDFLAGS) $(CLIB)
-	$(QUIET)sudo mkdir -p $(OUTPUTPATH)
+	$(QUIET)mkdir -p $(OUTPUTPATH)
 	$ mv $(TARGET) $(OUTPUTPATH)/
 
 clean:
@@ -94,6 +95,8 @@ endif
 	$(QUIET)cp -r $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(TMP_PKG_FOLDER)/$(APP_GUID)/
 	$(QUIET)cp $(INSTALL_FOLDER)/uninstall_plugIN.sh $(TMP_PKG_FOLDER)/$(APP_GUID)/
 	$(QUIET)cp $(INSTALL_FOLDER)/install_plugIN.sh $(TMP_PKG_FOLDER)/
+	$(QUIET)mkdir -p $(TMP_PKG_FOLDER)/$(APP_GUID)/lib/
+	$(QUIET)cp $(LIB_FOLDER)/libadmplugin.so $(TMP_PKG_FOLDER)/$(APP_GUID)/lib/
 	$(QUIET)zip -r $(OUTPUTPATH)/$(TARGET) $(TMP_PKG_FOLDER)
 	$(QUIET)rm -rf $(TMP_PKG_FOLDER)
 	$(QUIET)$(ECHO) "The $(TARGET) app related files are packaged to ./output/$(TARGET).zip"
