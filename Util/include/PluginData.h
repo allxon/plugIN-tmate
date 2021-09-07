@@ -26,12 +26,14 @@ class CUpdateProperty : public CUpdateInfo {
 public:
     CUpdateProperty();
     CUpdateProperty(std::string name, std::string displayCategory, std::string displayName, std::string description,
-        std::string displayType, std::string stringValue, std::list<std::map<std::string, std::string> > &tableValue);
+        std::string displayType, std::string stringValue, std::list<std::map<std::string, std::string> > &tableValue,
+        std::map<std::string, std::list<std::string> > const& valueFromProperty = std::map<std::string, std::list<std::string> >());
     ~CUpdateProperty();
 
     std::string displayType;
     std::string stringValue;
     std::list<std::map<std::string, std::string> > tableValue;
+    std::map<std::string, std::list<std::string> > valueFromProperty;
 };
 
 class CUpdateState : public CUpdateInfo {
@@ -83,10 +85,12 @@ class CUpdateCommandParam : public CUpdateControlParam {
 public:
     CUpdateCommandParam();
     CUpdateCommandParam(std::string name, std::string displayName, std::string description, std::string displayType, 
-        bool required, std::string requiredOn, std::string displayFormat, std::list<std::string> &displayValues, std::string defaultValue);
+        bool required, std::string requiredOn, std::string displayFormat, std::list<std::string> &displayValues,
+        std::string defaultValue, std::string valueFromProperty = "");
     ~CUpdateCommandParam();
 
     std::string defaultValue;
+    std::string valueFromProperty;
 };
 
 class CUpdateAlarmParam : public CUpdateControlParam {
@@ -101,11 +105,13 @@ class CUpdateCommand : public CUpdateInfo {
 public:
     CUpdateCommand();
     CUpdateCommand(std::string name, std::string displayCategory, std::string displayName, std::string description,
-        std::string type, std::list<CUpdateCommandParam *> &params);
+        std::string type, std::list<CUpdateCommandParam *> &params,
+        std::map<std::string, std::list<std::string> > const& displayOnProperty = std::map<std::string, std::list<std::string> >());
     ~CUpdateCommand();
 
     std::string type;
     std::list<CUpdateCommandParam *> params;
+    std::map<std::string, std::list<std::string> > displayOnProperty;
 };
 
 class CUpdateAlarm : public CUpdateInfo {

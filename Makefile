@@ -2,16 +2,16 @@ QUIET = @
 ECHO  = echo
 RM = rm -rf
 
-ENV = X86
+ENV = x86
 
 CC = g++
 GCC_GXX_WARNINGS = -Wall -Wno-error -Wno-packed -Wpointer-arith -Wredundant-decls -Wstrict-aliasing=3 -Wswitch-enum -Wundef -Wwrite-strings -Wextra -Wno-unused-parameter
 CFLAGS = -Os -DDEBUG
 LDFLAGS = -lm
 
-ifeq ($(ENV),X86)
+ifeq ($(ENV),x86)
 	APP_GUID = 286b0652-c5ef-46c0-aa8c-7b617bbf6ab9
-else ifeq ($(ENV),Jetson)
+else ifeq ($(ENV),jetson)
 	APP_GUID = 3ff0bf0a-17a0-47c0-b9f6-229191393182
 endif
 TARGET = plugIN-tmate
@@ -31,8 +31,8 @@ TMP_PKG_FOLDER = ./$(TARGET)
 CINC = -I$(MAIN_FOLDER) -I$(PWD)/websocket -I$(UTIL_FOLDER)/include -I$(PLUGINS_FOLDER)
 SRCDIR = Util/src Plugins MainSrc
 
-CLIB = -ladmplugin -lboost_system -lboost_chrono -lboost_random -lrt -lpthread -lssl -lcrypto
-CLIB += $(LIB_FOLDER)/libargon2.a
+CLIB = -lboost_system -lboost_chrono -lboost_random -lrt -lpthread -lssl -lcrypto
+CLIB += $(LIB_FOLDER)/libadmplugin.a $(LIB_FOLDER)/libargon2.a
 
 C_SRCDIR = $(SRCDIR)
 C_SOURCES = $(foreach d,$(C_SRCDIR),$(wildcard $(d)/*.c))

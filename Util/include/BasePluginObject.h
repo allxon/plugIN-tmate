@@ -2,8 +2,8 @@
 #define     BASEPLUGINOBJECT_H_
 
 #include <stddef.h>
-#include "Comm.h"
-#include "cJSON.h"
+#include "../../Util/include/Comm.h"
+#include "../../Util/include/cJSON.h"
 
 
 #define ASCII_START     32
@@ -17,6 +17,7 @@
 #define JKEY_PARAMS                  "params"
 #define JKEY_EPOCH                   "epoch"
 #define JKEY_APP_NAME                "appName"
+#define JKEY_VERSION                 "version"
 #define JKEY_APP_GUID                "appGUID"
 #define JKEY_CLIENT_APP_GUID         "clientAppGUID"
 #define JKEY_SERIAL_NUMBER           "serialNumber"
@@ -117,7 +118,7 @@ protected:
     virtual cJSON *GetJsonrpcRequest(cJSON *paramJson);
     cJSON *GetSignedRequestJson(std::string method, cJSON *requestJson, bool unformatted);
 
-    static cJSON *CreateBaseDataItemJson(const char *name, const char *displayName, const char *description, const char *displayCategory);
+    static cJSON *CreateBaseDataItemJson(const char *name, const char *displayName = NULL, const char *description = NULL, const char *displayCategory = NULL);
     static cJSON *CreateBaseValueItemJson(const char *name, const char *value);
     static cJSON *CreateBaseValueItemJson(const char *name, cJSON *value);
     static cJSON *CreateBaseValueItemJson(const char *name, double value);

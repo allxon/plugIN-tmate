@@ -29,6 +29,7 @@ public:
     std::string GetModuleName() { return m_moduleName; }
     void SetModuleName(std::string moduleName) { m_moduleName = moduleName; }
     std::string GetUpdateEpoch() { return m_updateEpoch; }
+    std::string GetVersion() { return m_version; }
     void SetUpdateEpoch(std::string updateEpoch) { m_updateEpoch = updateEpoch; }
     std::list<cJSON *> GetModulesParam() { return m_modules; }
     bool IsValidSignature() { return m_validSignature; }
@@ -39,9 +40,11 @@ private:
     std::string m_accessKey;
     std::string m_moduleName;
     std::string m_updateEpoch;
+    std::string m_version;
     std::list<cJSON *> m_modules;
     bool m_validSignature;
 
+    void SetVersion(std::string version) { m_version = version; }
     void ValidateAlarms(const char *alarmsJsonString);
 };
 

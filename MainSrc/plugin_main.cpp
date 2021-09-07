@@ -18,6 +18,7 @@ using namespace std;
 #define BDM_AGENT "BDM_Agent"
 #define PID_FILE "/var/run/tmatePlugin.pid"
 
+
 CConnection* connection;
 CConnectionState* currConnState;
 
@@ -145,7 +146,7 @@ int launchAgent()
 }
 #endif
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
     Log start; // start Logging
     UTL_LOG_INFO("BUILD_INFO: %s", BUILD_INFO);
@@ -183,13 +184,13 @@ int main(int argc, char **argv)
         UTLCond_t maincond;
 
         int rv = UTLCond_Init(&maincond);
-        if (rv != 0) 
+        if (rv != 0)
         {
             UTL_LOG_ERROR("%s failed: %d", "UTLCond_Init", rv);
             return 0;
         }
         rv = UTLMutex_Init(&mutex);
-        if (rv != 0) 
+        if (rv != 0)
         {
             UTL_LOG_ERROR("%s failed: %d", "UTLMutex_Init", rv);
             return 0;
