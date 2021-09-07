@@ -30,11 +30,9 @@ fi
 # Determine the case belongs to OTA installation or Install by Preload installer
 if [ -d "/var/lib/SyncAgent/download/tmp/$plugin_folder/$plugin_appguid" ]; then
    sudo cp -r /var/lib/SyncAgent/download/tmp/$plugin_folder/$plugin_appguid /opt/allxon/plugIN/
-   sudo cp /var/lib/SyncAgent/download/tmp/$plugin_folder/$plugin_appguid/lib/* /usr/lib/
    sudo rm -rf /var/lib/SyncAgent/download/tmp
 else
    sudo cp -r ./$plugin_appguid /opt/allxon/plugIN/
-   sudo cp ./$plugin_appguid/lib/* /usr/lib/
 fi
 
 echo "plugIN is installed to /opt/allxon/plugIN/$plugin_appguid/"
