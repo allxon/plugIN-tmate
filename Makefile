@@ -7,7 +7,7 @@ ENV = x86
 TOOLCHAIN=/build/toolchain/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu
 TOOLCHAIN_CC=$(TOOLCHAIN)/bin/aarch64-linux-gnu-gcc
 
-CC = g++
+CC = gcc
 GCC_GXX_WARNINGS = -Wall -Wno-error -Wno-packed -Wpointer-arith -Wredundant-decls -Wstrict-aliasing=3 -Wswitch-enum -Wundef -Wwrite-strings -Wextra -Wno-unused-parameter
 CFLAGS = -Os -DDEBUG
 LDFLAGS = -lm
@@ -64,8 +64,8 @@ $(C_OBJS):$(OBJ_PATH)/%.o:%.c
 	$(QUIET)$(CC) $(CFLAGS) -DLINUX $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@
 
 $(CPP_OBJS):$(OBJ_PATH)/%.o:%.cpp
-	$(QUIET)$(ECHO) "$(CC) $(CFLAGS) -DLINUX -D_GLIBCXX_USE_CXX11_ABI=1 $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@"
-	$(QUIET)$(CC) $(CFLAGS) -DLINUX -D_GLIBCXX_USE_CXX11_ABI=1 $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@
+	$(QUIET)$(ECHO) "$(CC) $(CFLAGS) -DLINUX $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@"
+	$(QUIET)$(CC) $(CFLAGS) -DLINUX $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@
 
 init:
 	$(foreach d,$(SRCDIR), mkdir -p $(OBJ_PATH)/$(d);)
