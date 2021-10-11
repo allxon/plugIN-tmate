@@ -40,7 +40,7 @@ CLIB = $(LIB_FOLDER)/libadmplugin.a \
 	$(LIB_FOLDER)/libboost_chrono.a \
 	$(LIB_FOLDER)/libboost_random.a \
 	$(LIB_FOLDER)/libssl.a
-CLIB += -lrt -lcrypto -lpthread -lstdc++
+CLIB += -lrt -lcrypto -lpthread
 
 C_SRCDIR = $(SRCDIR)
 C_SOURCES = $(foreach d,$(C_SRCDIR),$(wildcard $(d)/*.c))
@@ -60,8 +60,8 @@ default:init compile
 	$(QUIET)$(ECHO) "###### Compile $(CPP_OBJS) $(C_OBJS)done!! ######"
 
 $(C_OBJS):$(OBJ_PATH)/%.o:%.c
-	$(QUIET)$(ECHO) "$(CC) $(CFLAGS) -DLINUX $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@"
-	$(QUIET)$(CC) $(CFLAGS) -DLINUX $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@
+	$(QUIET)$(ECHO) "$(CC) $(CFLAGS) -DLINUX -D_GLIBCXX_USE_CXX11_ABI=0 $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@"
+	$(QUIET)$(CC) $(CFLAGS) -DLINUX -D_GLIBCXX_USE_CXX11_ABI=0 $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@
 
 $(CPP_OBJS):$(OBJ_PATH)/%.o:%.cpp
 	$(QUIET)$(ECHO) "$(CC) $(CFLAGS) -DLINUX $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@"
@@ -99,6 +99,7 @@ toolchainbuild: toolchaininit init compile
 toolchaininit:
 	$(eval CC := $(TOOLCHAIN_CC))
 	$(eval CINC := $(CINC) -I$(TOOLCHAIN)/include)
+	$(eval CLIB := $(CLIB) -lstdc++)
 
 package: $(OUTPUTPATH)/$(TARGET) $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(INSTALL_FOLDER)
 ifneq (ls $(TMP_PKG_FOLDER),)
