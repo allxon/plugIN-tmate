@@ -2,7 +2,10 @@ QUIET = @
 ECHO  = echo
 RM = rm -rf
 
-ENV = x86
+#ENV = x86
+
+TOOLCHAIN=/build/toolchain/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu
+TOOLCHAIN_CC=$(TOOLCHAIN)/bin/aarch64-linux-gnu-gcc
 
 CC = g++
 GCC_GXX_WARNINGS = -Wall -Wno-error -Wno-packed -Wpointer-arith -Wredundant-decls -Wstrict-aliasing=3 -Wswitch-enum -Wundef -Wwrite-strings -Wextra -Wno-unused-parameter
@@ -31,8 +34,13 @@ TMP_PKG_FOLDER = ./$(TARGET)
 CINC = -I$(MAIN_FOLDER) -I$(PWD)/websocket -I$(UTIL_FOLDER)/include -I$(PLUGINS_FOLDER)
 SRCDIR = Util/src Plugins MainSrc
 
-CLIB = -lboost_system -lboost_chrono -lboost_random -lrt -lpthread -lssl -lcrypto
-CLIB += $(LIB_FOLDER)/libadmplugin.a $(LIB_FOLDER)/libargon2.a
+CLIB = $(LIB_FOLDER)/libadmplugin.a \
+	$(LIB_FOLDER)/libargon2.a \
+	$(LIB_FOLDER)/libboost_system.a \
+	$(LIB_FOLDER)/libboost_chrono.a \
+	$(LIB_FOLDER)/libboost_random.a \
+	$(LIB_FOLDER)/libssl.a
+CLIB += -lrt -lcrypto -lpthread
 
 C_SRCDIR = $(SRCDIR)
 C_SOURCES = $(foreach d,$(C_SRCDIR),$(wildcard $(d)/*.c))
@@ -47,7 +55,6 @@ ALLOBJS = $(wildcard $(OBJ_PATH)/*.o)
 BUILD_INFO_INCLUDE_FILE = $(PWD)/Util/include/build_info.h
 BUILD_DATE := $(shell date '+%Y%m%d-%H%M%S')
 BUILD_VERSION := '1.06.2003'
-
 
 default:init compile
 	$(QUIET)$(ECHO) "###### Compile $(CPP_OBJS) $(C_OBJS)done!! ######"
@@ -65,7 +72,7 @@ init:
 	$(ECHO) '#define BUILD_INFO "'$(BUILD_VERSION)_$(BUILD_DATE)'"' > $(BUILD_INFO_INCLUDE_FILE);
 
 compile:$(C_OBJS) $(CPP_OBJS)
-	$(CC) $^ -o $(TARGET) $(LDFLAGS) $(CLIB)
+	$(CC) -no-pie $^ -o $(TARGET) $(LDFLAGS) $(CLIB)
 	$(QUIET)mkdir -p $(OUTPUTPATH)
 	$ mv $(TARGET) $(OUTPUTPATH)/
 
@@ -85,6 +92,16 @@ endif
 uninstall:
 	$(QUIET)sudo $(RM) $(BIN_FOLDER)
 	$(QUIET)$(ECHO) "$(TARGET) is removed."
+	
+toolchainbuild: toolchaininit init compile
+	 $(QUIET)$(ECHO) "###### Compile $(CPP_OBJS) $(C_OBJS)done!! ######"
+
+toolchaininit:
+	$(eval ENV = jetson)
+	$(eval APP_GUID = 3ff0bf0a-17a0-47c0-b9f6-229191393182)
+	$(eval CC := $(TOOLCHAIN_CC))
+	$(eval CINC := $(CINC) -I$(TOOLCHAIN)/include)
+	$(eval CLIB := $(CLIB) -lstdc++)
 
 package: $(OUTPUTPATH)/$(TARGET) $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(INSTALL_FOLDER)
 ifneq (ls $(TMP_PKG_FOLDER),)
