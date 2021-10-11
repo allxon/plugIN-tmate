@@ -40,7 +40,7 @@ CLIB = $(LIB_FOLDER)/libadmplugin.a \
 	$(LIB_FOLDER)/libboost_chrono.a \
 	$(LIB_FOLDER)/libboost_random.a \
 	$(LIB_FOLDER)/libssl.a
-CLIB += -lrt -lcrypto -lpthread
+CLIB += -lrt -lcrypto -lpthread -lstdc++
 
 C_SRCDIR = $(SRCDIR)
 C_SOURCES = $(foreach d,$(C_SRCDIR),$(wildcard $(d)/*.c))
@@ -99,7 +99,6 @@ toolchainbuild: toolchaininit init compile
 toolchaininit:
 	$(eval CC := $(TOOLCHAIN_CC))
 	$(eval CINC := $(CINC) -I$(TOOLCHAIN)/include)
-	$(eval CLIB := $(CLIB) -lstdc++)
 
 package: $(OUTPUTPATH)/$(TARGET) $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(INSTALL_FOLDER)
 ifneq (ls $(TMP_PKG_FOLDER),)
