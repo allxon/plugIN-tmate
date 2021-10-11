@@ -4,6 +4,9 @@ RM = rm -rf
 
 ENV = x86
 
+TOOLCHAIN=/build/toolchain/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu
+TOOLCHAIN_CC=$(TOOLCHAIN)/bin/aarch64-linux-gnu-gcc
+
 CC = g++
 GCC_GXX_WARNINGS = -Wall -Wno-error -Wno-packed -Wpointer-arith -Wredundant-decls -Wstrict-aliasing=3 -Wswitch-enum -Wundef -Wwrite-strings -Wextra -Wno-unused-parameter
 CFLAGS = -Os -DDEBUG
@@ -48,7 +51,6 @@ BUILD_INFO_INCLUDE_FILE = $(PWD)/Util/include/build_info.h
 BUILD_DATE := $(shell date '+%Y%m%d-%H%M%S')
 BUILD_VERSION := '1.06.2003'
 
-
 default:init compile
 	$(QUIET)$(ECHO) "###### Compile $(CPP_OBJS) $(C_OBJS)done!! ######"
 
@@ -85,6 +87,14 @@ endif
 uninstall:
 	$(QUIET)sudo $(RM) $(BIN_FOLDER)
 	$(QUIET)$(ECHO) "$(TARGET) is removed."
+	
+toolchainbuild: toolchaininit init compile
+	 $(QUIET)$(ECHO) "###### Compile $(CPP_OBJS) $(C_OBJS)done!! ######"
+
+toolchaininit:
+	$(eval CC := $(TOOLCHAIN_CC))
+	$(eval CINC := $(CINC) -I$(TOOLCHAIN)/include)
+	$(eval CLIB := $(CLIB) -lstdc++)
 
 package: $(OUTPUTPATH)/$(TARGET) $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(INSTALL_FOLDER)
 ifneq (ls $(TMP_PKG_FOLDER),)
