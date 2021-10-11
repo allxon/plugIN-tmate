@@ -72,7 +72,7 @@ init:
 	$(ECHO) '#define BUILD_INFO "'$(BUILD_VERSION)_$(BUILD_DATE)'"' > $(BUILD_INFO_INCLUDE_FILE);
 
 compile:$(C_OBJS) $(CPP_OBJS)
-	$(CC) $^ -o -no-pie $(TARGET) $(LDFLAGS) $(CLIB)
+	$(CC) -no-pie $^ -o $(TARGET) $(LDFLAGS) $(CLIB)
 	$(QUIET)mkdir -p $(OUTPUTPATH)
 	$ mv $(TARGET) $(OUTPUTPATH)/
 
