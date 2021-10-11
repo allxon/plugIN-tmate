@@ -2,7 +2,7 @@ QUIET = @
 ECHO  = echo
 RM = rm -rf
 
-#ENV = x86
+ENV = x86
 
 TOOLCHAIN=/build/toolchain/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu
 TOOLCHAIN_CC=$(TOOLCHAIN)/bin/aarch64-linux-gnu-gcc
@@ -97,6 +97,8 @@ toolchainbuild: toolchaininit init compile
 	 $(QUIET)$(ECHO) "###### Compile $(CPP_OBJS) $(C_OBJS)done!! ######"
 
 toolchaininit:
+	$(eval ENV = jetson)
+	$(eval APP_GUID = 3ff0bf0a-17a0-47c0-b9f6-229191393182)
 	$(eval CC := $(TOOLCHAIN_CC))
 	$(eval CINC := $(CINC) -I$(TOOLCHAIN)/include)
 	$(eval CLIB := $(CLIB) -lstdc++)
