@@ -7,7 +7,7 @@ ENV = x86
 TOOLCHAIN=/build/toolchain/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu
 TOOLCHAIN_CC=$(TOOLCHAIN)/bin/aarch64-linux-gnu-gcc
 
-CC = gcc
+CC = g++
 GCC_GXX_WARNINGS = -Wall -Wno-error -Wno-packed -Wpointer-arith -Wredundant-decls -Wstrict-aliasing=3 -Wswitch-enum -Wundef -Wwrite-strings -Wextra -Wno-unused-parameter
 CFLAGS = -Os -DDEBUG
 LDFLAGS = -lm
