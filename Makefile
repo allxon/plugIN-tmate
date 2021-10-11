@@ -34,8 +34,13 @@ TMP_PKG_FOLDER = ./$(TARGET)
 CINC = -I$(MAIN_FOLDER) -I$(PWD)/websocket -I$(UTIL_FOLDER)/include -I$(PLUGINS_FOLDER)
 SRCDIR = Util/src Plugins MainSrc
 
-CLIB = -lboost_system -lboost_chrono -lboost_random -lrt -lpthread -lssl -lcrypto
-CLIB += $(LIB_FOLDER)/libadmplugin.a $(LIB_FOLDER)/libargon2.a
+CLIB = $(LIB_FOLDER)/libadmplugin.a \
+	$(LIB_FOLDER)/libargon2.a \
+	$(LIB_FOLDER)/libboost_system.a \
+	$(LIB_FOLDER)/libboost_chrono.a \
+	$(LIB_FOLDER)/libboost_random.a \
+	$(LIB_FOLDER)/libssl.a
+CLIB += -lrt -lcrypto -lpthread
 
 C_SRCDIR = $(SRCDIR)
 C_SOURCES = $(foreach d,$(C_SRCDIR),$(wildcard $(d)/*.c))
