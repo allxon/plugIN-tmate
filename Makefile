@@ -60,12 +60,12 @@ default:init compile
 	$(QUIET)$(ECHO) "###### Compile $(CPP_OBJS) $(C_OBJS)done!! ######"
 
 $(C_OBJS):$(OBJ_PATH)/%.o:%.c
-	$(QUIET)$(ECHO) "$(CC) $(CFLAGS) -DLINUX -D_GLIBCXX_USE_CXX11_ABI=0 $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@"
-	$(QUIET)$(CC) $(CFLAGS) -DLINUX -D_GLIBCXX_USE_CXX11_ABI=0 $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@
+	$(QUIET)$(ECHO) "$(CC) $(CFLAGS) -DLINUX $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@"
+	$(QUIET)$(CC) $(CFLAGS) -DLINUX $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@
 
 $(CPP_OBJS):$(OBJ_PATH)/%.o:%.cpp
-	$(QUIET)$(ECHO) "$(CC) $(CFLAGS) -DLINUX -D_GLIBCXX_USE_CXX11_ABI=0 $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@"
-	$(QUIET)$(CC) $(CFLAGS) -DLINUX -D_GLIBCXX_USE_CXX11_ABI=0 $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@
+	$(QUIET)$(ECHO) "$(CC) $(CFLAGS) -DLINUX -D_GLIBCXX_USE_CXX11_ABI=1 $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@"
+	$(QUIET)$(CC) $(CFLAGS) -DLINUX -D_GLIBCXX_USE_CXX11_ABI=1 $(GCC_GXX_WARNINGS) -c -o2 $(CINC) $< -o $@
 
 init:
 	$(foreach d,$(SRCDIR), mkdir -p $(OBJ_PATH)/$(d);)
