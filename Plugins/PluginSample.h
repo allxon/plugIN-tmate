@@ -1,9 +1,10 @@
 #ifndef _PLUGINSAMPLE_H_
 #define _PLUGINSAMPLE_H_
 
-#include "../Util/include/PluginData.h"
-#include "../Util/include/CommandAcksPluginJson.h"
-#include "../Util/include/AlertsPluginJson.h"
+#include "../PluginSDK/PluginData.h"
+#include "../PluginSDK/CommandAcksPluginJson.h"
+#include "../PluginSDK/AlertsPluginJson.h"
+#include "../PluginSDK/ConfigsPluginJson.h"
 
 
 typedef enum
@@ -67,7 +68,7 @@ public:
     CLocalCommandParams *GetLocalCommandData();
     CUpdateModule *GetModule(std::string moduleName);
     CUpdatePluginJson *SetNotifyPluginUpdateFromFile(std::string jsonFile);
-    char *SetNotifyCommandAcks(CCommandPluginJson *receivedCmds, std::string moduleName, std::string cmdState, cJSON *cmdAcks);
+    char *SetNotifyCommandAcks(CCommandPluginJson *receivedCmds, std::string moduleName, std::string cmdState, cJSON *cmdAcks, cJSON *states = NULL);
     char *SetNotifyStates(std::string moduleName, cJSON *states);
     char *SetNotifyEvents(std::string moduleName, cJSON *events);
     char *SetNotifyMetrics(std::string moduleName, cJSON *metrics);

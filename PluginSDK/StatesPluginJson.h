@@ -6,7 +6,7 @@
 
 #define JKEY_STATES                 "states"
 
-class CStatesPluginJson: public CBasePluginObject {
+class PLUGIN_API CStatesPluginJson: public CBasePluginObject {
 public:
     CStatesPluginJson();
     ~CStatesPluginJson();

@@ -15,7 +15,7 @@ public:
     const static std::string remote;
 };
 
-class CLocalCommandPluginJson: public CBasePluginObject {
+class PLUGIN_API CLocalCommandPluginJson: public CBasePluginObject {
 public:
     CLocalCommandPluginJson();
     ~CLocalCommandPluginJson();

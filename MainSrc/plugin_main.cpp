@@ -6,9 +6,9 @@
 #include "ConcreteStates.h"
 #include "WebSocketClient.h"
 #include "../Util/include/Utl_Log.h"
-#include "../Util/include/UpdatePluginJson.h"
-#include "../Util/include/PluginException.h"
-#include "../Util/include/CommandAcksPluginJson.h"
+#include "../PluginSDK/UpdatePluginJson.h"
+#include "../PluginSDK/PluginException.h"
+#include "../PluginSDK/CommandAcksPluginJson.h"
 #include "../Plugins/TmatePlugin.h"
 
 using namespace std;
@@ -108,41 +108,6 @@ int getProcIdByName(string procName)
 }
 
 
-bool agentLaunchedByPlugin = false;
-int launchAgent()
-{
-    int psId = getProcIdByName(BDM_AGENT);
-    UTL_LOG_INFO("1. Agent psId: %d", psId);
-    currConnState = connection->getCurrentState();
-    if (currConnState == &CInit::getInstance())
-    {
-        CInit* state = (CInit*)currConnState;
-        state->setNewStateReason(psId > 0? CInit::AGENT_ALIVE : CInit::AGENT_DISABLED);
-        connection->toggle();
-    }
-    else if (currConnState == &CWebsocketDisconnected::getInstance())
-    {
-        CWebsocketDisconnected* state = (CWebsocketDisconnected*)currConnState;
-        if (psId <= 0) state->setNewStateReason(psId > 0? CInit::AGENT_ALIVE : CInit::AGENT_DISABLED);
-        connection->toggle();
-    }
-    if (psId == -1)
-    {
-        agentLaunchedByPlugin = true;
-        system("BDM_Agent -d -o &"); // TODO: add checking the status value of system call for Agent.
-        psId = getProcIdByName(BDM_AGENT);
-        UTL_LOG_INFO("2. Agent psId: %d", psId);
-        currConnState = connection->getCurrentState();
-        if (currConnState == &CAgentDisabled::getInstance())
-        {
-            CAgentDisabled* state = (CAgentDisabled*)currConnState;
-            state->setNewStateReason(psId > 0? CAgentDisabled::AGENT_ALIVE : CAgentDisabled::AGENT_DISABLED);
-            connection->toggle();
-        }
-    }
-    return psId;
-}
-
 int checkAgentStatus()
 {
     int psId = getProcIdByName(BDM_AGENT);
@@ -232,12 +197,6 @@ CONNECT_WEBSOCKET:
         }
 
         UTL_LOG_INFO("Agent psId: %d", getProcIdByName(BDM_AGENT));
-        if (agentLaunchedByPlugin)
-        {
-            agentLaunchedByPlugin = false;
-            UTL_LOG_INFO("wait 90 secs for websocket server ready...");
-            sleep(90);
-        }
 #ifdef DEBUG
         UTL_LOG_INFO("new wsclientobj");
 #endif

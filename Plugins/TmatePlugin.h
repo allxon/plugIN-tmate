@@ -3,7 +3,7 @@
 
 #include <bitset>
 #include "PluginSample.h"
-#include "../Util/include/AlertsPluginJson.h"
+#include "../PluginSDK/AlertsPluginJson.h"
 
 #define SAMPLE_TMATE_PLUGIN      "TmatePlugin"
 #define PLUGINS_PATH                "/opt/allxon/plugIN/"

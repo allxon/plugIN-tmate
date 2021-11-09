@@ -6,7 +6,7 @@
 
 #define JKEY_EVENTS                 "events"
 
-class CEventsPluginJson: public CBasePluginObject {
+class PLUGIN_API CEventsPluginJson: public CBasePluginObject {
 public:
     CEventsPluginJson();
     ~CEventsPluginJson();
