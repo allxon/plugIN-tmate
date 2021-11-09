@@ -10,6 +10,7 @@
 #define JKEY_STOP_COMMAND               "stopCommand"
 #define JKEY_MODULES                    "modules"
 #define JKEY_REQUIRED                   "required"
+#define JKEY_REQUIRED_ON                "requiredOn"
 #define JKEY_DISPLAY_FORMAT             "displayFormat"
 #define JKEY_DISPLAY_VALUES             "displayValues"
 #define JKEY_DEFAULT_VALUE              "defaultValue"
@@ -64,7 +65,7 @@ public:
     cJSON *GetJsonrpcRequest(cJSON *paramJson);
     cJSON *GetJsonrpcRequest(cJSON *paramJson, bool unformatted);
     cJSON *RenewUpdateJsonObject(bool unformatted);
-    cJSON *CreateUpdateParamsObj(const char *appName, const char *displayName, std::string appType, const char *version, const char *startCommand, const char *stopCommand,cJSON *modulesJson); 
+    cJSON *CreateUpdateParamsObj(const char *appName, const char *displayName, std::string appType, const char *version, const char *startCommand, const char *stopCommand,cJSON *modulesJson);
     static cJSON *CreateUpdateModulesItemJson(const char *moduleName, const char *displayName, const char *description, cJSON *properties, cJSON *states, cJSON *events,
         cJSON *metrics, cJSON *commands, cJSON *alarms);
     static cJSON *CreateUpdatePropertiesItemJson(const char *name, const char *displayName, const char *description,

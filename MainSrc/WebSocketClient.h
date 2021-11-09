@@ -74,9 +74,6 @@ public:
     void SetReceivedCommand(CCommandPluginJson *receivedCommand) { m_receivedCommand = receivedCommand; }
     void ClearReceivedCommand() { delete(m_receivedCommand); m_receivedCommand = NULL; } 
     char *TestSDKSendCommandAcks(bool afterAccepted, CCommandPluginJson *receivedCommand);
-    void TestSDKUpdateAlarms(const char *payload);
-    void SetAlarmUpdateObject(CAlarmUpdatePluginJson *alarmUpdateObj) { m_alarmUpdateObj = alarmUpdateObj; }
-    CAlarmUpdatePluginJson *GetAlarmUpdateObject() { return m_alarmUpdateObj; }
 
     void ResetUpdateThreadHandle() { m_threadUpdateHandle.handle = -1; }
     pthread_t GetUpdateThreadHandle() { return m_threadUpdateHandle.handle; }
@@ -108,7 +105,6 @@ private:
 #ifdef TEST_UPDATE
     CPluginSample *m_plugin;
     CCommandPluginJson *m_receivedCommand;
-    CAlarmUpdatePluginJson *m_alarmUpdateObj;
     UTLDetachableThreadHandle_t m_threadUpdateHandle;
     UTLDetachableThreadHandle_t m_threadCommandHandle;
 #endif

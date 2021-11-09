@@ -2,8 +2,8 @@
 #define     BASEPLUGINOBJECT_H_
 
 #include <stddef.h>
-#include "../../Util/include/Comm.h"
-#include "../../Util/include/cJSON.h"
+#include "../Util/include/Comm.h"
+#include "../Util/include/cJSON.h"
 
 
 #define ASCII_START     32

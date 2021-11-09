@@ -13,8 +13,6 @@
 
 using namespace std;
 
-#define DEBUG
-#define LAUNCH_AGENT
 #define BDM_AGENT "BDM_Agent"
 #define PID_FILE "/var/run/tmatePlugin.pid"
 
@@ -109,7 +107,7 @@ int getProcIdByName(string procName)
     return pid;
 }
 
-#ifdef LAUNCH_AGENT
+
 bool agentLaunchedByPlugin = false;
 int launchAgent()
 {
@@ -144,7 +142,26 @@ int launchAgent()
     }
     return psId;
 }
-#endif
+
+int checkAgentStatus()
+{
+    int psId = getProcIdByName(BDM_AGENT);
+    UTL_LOG_INFO("1. Agent psId: %d", psId);
+    currConnState = connection->getCurrentState();
+    if (currConnState == &CInit::getInstance())
+    {
+        CInit* state = (CInit*)currConnState;
+        state->setNewStateReason(psId > 0? CInit::AGENT_ALIVE : CInit::AGENT_DISABLED);
+        connection->toggle();
+    }
+    else if (currConnState == &CWebsocketDisconnected::getInstance())
+    {
+        CWebsocketDisconnected* state = (CWebsocketDisconnected*)currConnState;
+        if (psId <= 0) state->setNewStateReason(psId > 0? CInit::AGENT_ALIVE : CInit::AGENT_DISABLED);
+        connection->toggle();
+    }
+    return psId;
+}
 
 int main(int argc, char **argv)
 {
@@ -197,22 +214,21 @@ int main(int argc, char **argv)
         }
 
 CONNECT_WEBSOCKET:
-#ifdef LAUNCH_AGENT
         int agentRet = -1;
         int retryLaunchingCount = 0;
         do {
-            agentRet = launchAgent();
+            agentRet = checkAgentStatus();
             UTL_LOG_INFO("agent psId = %d", agentRet);
-            sleep(CWebSocketClient::ExponentialRetryPause(++retryLaunchingCount));
+            if (agentRet == -1) sleep(CWebSocketClient::ExponentialRetryPause(++retryLaunchingCount));
         } while (agentRet == -1);
         retryLaunchingCount = 0;
         currConnState = connection->getCurrentState();
         if (currConnState == &CAgentDisabled::getInstance())
         {
             CAgentDisabled* state = (CAgentDisabled*)currConnState;
-            state->setNewStateReason(CConnectionState::ERROR);
+            state->setNewStateReason(agentRet > 0? CAgentDisabled::AGENT_ALIVE : CConnectionState::ERROR);
             connection->toggle();
-            goto EXIT;
+            if (agentRet <= 0) goto EXIT;
         }
 
         UTL_LOG_INFO("Agent psId: %d", getProcIdByName(BDM_AGENT));
@@ -222,13 +238,12 @@ CONNECT_WEBSOCKET:
             UTL_LOG_INFO("wait 90 secs for websocket server ready...");
             sleep(90);
         }
-#endif
 #ifdef DEBUG
         UTL_LOG_INFO("new wsclientobj");
 #endif
         CWebSocketClient *wsclientobj = new CWebSocketClient();
         wsclientobj->Initial();
-#if defined(TEST_UPDATE)
+#ifdef TEST_UPDATE
         if (argv[1] && strlen(argv[1]) > 0)
         {
             CPluginSampleConfig *config = new CPluginSampleConfig(argv[1]);

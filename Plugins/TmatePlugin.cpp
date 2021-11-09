@@ -12,6 +12,8 @@ const bitset<4> StateUpdated::version = bitset<4>("0010");
 const bitset<4> StateUpdated::web = bitset<4>("0100");
 const bitset<4> StateUpdated::ssh = bitset<4>("1000");
 const bitset<4> StateUpdated::none = bitset<4>("0000");
+const bitset<1> AlertStatus::alarm1 = bitset<1>("1");
+const bitset<1> AlertStatus::none = bitset<1>("0");
 const string TmateStates::status = "status";
 const string TmateStates::version = "version";
 const string TmateStates::web = "web";
@@ -21,7 +23,18 @@ const string TmateCommands::start = "start";
 const string TmateCommands::stop = "stop";
 const string TmateCommands::uninstall = "uninstall";
 const string TmateCommands::password = "password";
+const string CTmatePlugin::moduleTmate = "tmateWebConsole";
 
+string AlertStatus::GetName(bitset<1> alertStatus)
+{
+    if (alertStatus == AlertStatus::none) return "none";
+    else
+    {
+        string alertStatusName;
+        if ((alertStatus & AlertStatus::alarm1) == AlertStatus::alarm1) alertStatusName.append("alarm1|");
+        return alertStatusName;
+    }
+}
 
 CTmatePlugin::CTmatePlugin():CPluginSample()
 {
@@ -52,77 +65,77 @@ CUpdatePluginJson *CTmatePlugin::SetNotifyPluginUpdate()
     return updatePluginObj;
 }
 
-bool CTmatePlugin::AcceptReceivedCommand(cJSON *commandJson)
+bool CTmatePlugin::AcceptReceivedCommand(string cmdName, map<string, string> params, string& reason)
 {
-    if (commandJson)
+    bool result = true;
+    if (!cmdName.empty())
     {
-        string command = CPluginUtil::GetJSONStringFieldValue(commandJson, JKEY_NAME);
-        if (command.compare(TmateCommands::start) == 0 || command.compare(TmateCommands::stop) == 0 ||
-            command.compare(TmateCommands::install) == 0 || command.compare(TmateCommands::uninstall) == 0)
+        if (cmdName.compare(TmateCommands::start) == 0 || cmdName.compare(TmateCommands::stop) == 0 ||
+            cmdName.compare(TmateCommands::install) == 0 || cmdName.compare(TmateCommands::uninstall) == 0)
         {
-            return true;
+            result = true;
+            reason = "OK";
         }
     }
-    return false;
+    else
+    {
+        result = false;
+        reason = "Rejected.";
+    }
+    UTL_LOG_INFO("reason: %s", reason.c_str());
+    return result;  
 }
 
-string CTmatePlugin::ExecuteReceivedCommand(cJSON *commandJson, cJSON *cmdAck)
+string CTmatePlugin::ExecuteReceivedCommand(string cmdName, map<string, string> params, cJSON *cmdAck)
 {
     string cmdState = "";
-    if (commandJson)
+    if (cmdName.compare(TmateCommands::start) == 0 || cmdName.compare(TmateCommands::stop) == 0 ||
+        cmdName.compare(TmateCommands::install) == 0 || cmdName.compare(TmateCommands::uninstall) == 0)
     {
-        string command = CPluginUtil::GetJSONStringFieldValue(commandJson, JKEY_NAME);
-        if (command.compare(TmateCommands::start) == 0 || command.compare(TmateCommands::stop) == 0 ||
-            command.compare(TmateCommands::install) == 0 || command.compare(TmateCommands::uninstall) == 0)
+        string scriptCmd = m_pluginPath;
+        scriptCmd.append(SCRIPTS_COMMANDS_PATH).append(cmdName).append(".sh");
+        string cmdParam;
+        if (cmdName.compare(TmateCommands::start) == 0)
         {
-            string scriptCmd = m_pluginPath;
-            scriptCmd.append(SCRIPTS_COMMANDS_PATH).append(command).append(".sh");
-            string cmdParam;
-            if (command.compare(TmateCommands::start) == 0)
+            for (auto it=params.begin(); it!=params.end(); it++)
             {
-                cJSON *cmdParamsJson = cJSON_GetObjectItem(commandJson, JKEY_PARAMS);
-                if (cmdParamsJson && cJSON_IsArray(cmdParamsJson))
+                string paramName = (*it).first;
+                string paramValue = (*it).second;
+                if (paramValue.empty()) continue;
+                if (paramName.compare(TmateCommands::password) == 0)
                 {
-                    cJSON *cmdParamJson;
-                    cJSON_ArrayForEach(cmdParamJson, cmdParamsJson)
-                    {
-                        string paramName = CPluginUtil::GetJSONStringFieldValue(cmdParamJson, JKEY_NAME);
-                        if (paramName.compare(TmateCommands::password) == 0)
-                        {
-                            cmdParam = string("--").append(TmateCommands::password).append("=");
-                            cmdParam.append(CPluginUtil::GetJSONStringFieldValue(cmdParamJson, JKEY_VALUE));
-                            UTL_LOG_INFO("cmdParamL %s", cmdParam.c_str());
-                            break;
-                        }
-                    }
+                    cmdParam = string("--").append(paramName).append("="); // set to cmdParam directly since it's the first argument.
+                    cmdParam.append(paramValue);
+                    UTL_LOG_INFO("cmdParamL %s", cmdParam.c_str());
+                    break;
                 }
             }
-            string message;
-            bool result;
-            thread th1 = thread(CTmatePlugin::RunPluginScriptCmdOutput, scriptCmd, cmdParam, ref(result), ref(message));
-            if (command.compare(TmateCommands::start) == 0)
-            {
-                th1.detach();
-                sleep(3);
-            }
-            else
-            {
-                th1.join();
-            }
-
-            if (!cmdAck) cmdAck = cJSON_CreateObject();
-            cJSON_AddStringToObject(cmdAck, JKEY_NAME, command.c_str());
-            cJSON_AddStringToObject(cmdAck, JKEY_RESULT, message.c_str());
-            cmdState = result? AckState::ACKED : AckState::ERRORED;
+        }
+        string message;
+        bool result;
+        thread th1 = thread(CTmatePlugin::RunPluginScriptCmdOutput, scriptCmd, cmdParam, ref(result), ref(message));
+        if (cmdName.compare(TmateCommands::start) == 0)
+        {
+            th1.detach();
+            sleep(3);
         }
         else
         {
-            UTL_LOG_WARN("Unrecognized command.");
-            if (!cmdAck) cmdAck = cJSON_CreateObject();
-            cJSON_AddStringToObject(cmdAck, JKEY_NAME, command.c_str());
-            cJSON_AddStringToObject(cmdAck, JKEY_RESULT, "Unrecognized command.");
-            cmdState = AckState::REJECTED;
+            th1.join();
         }
+
+        if (!cmdAck) cmdAck = cJSON_CreateObject();
+        cJSON_AddStringToObject(cmdAck, JKEY_NAME, cmdName.c_str());
+        cJSON_AddStringToObject(cmdAck, JKEY_RESULT, message.c_str());
+        cmdState = result? AckState::ACKED : AckState::ERRORED;
+    }
+    else
+    {
+        UTL_LOG_WARN("Unrecognized command.");
+        if (!cmdAck) cmdAck = cJSON_CreateObject();
+        cJSON_AddStringToObject(cmdAck, JKEY_NAME, cmdName.c_str());
+        cJSON_AddStringToObject(cmdAck, JKEY_RESULT, "Unrecognized command.");
+        cmdState = AckState::REJECTED;
     }
     return cmdState;
 }
@@ -226,6 +239,39 @@ bitset<4> CTmatePlugin::IsStateFilesChanged()
 
     UTL_LOG_INFO("result: %s", result.to_string<char,string::traits_type,string::allocator_type>().c_str());
     return result;
+}
+
+void CTmatePlugin::UpdateAlarmsData(const char *payload)
+{
+    if (payload == NULL) return;
+
+    m_alertsStatus = AlertStatus::none;
+
+    if (m_alarmUpdateObj)
+    {
+        UTL_LOG_INFO("going to delete m_alarmUpdateObj...");
+        delete m_alarmUpdateObj;
+        m_alarmUpdateObj = NULL;
+    }
+    m_alarmUpdateObj = new CAlarmUpdatePluginJson(payload, accessKey);
+    UTL_LOG_INFO("new alarmUpdateObj object: %p", m_alarmUpdateObj);
+    list<cJSON *> alarmsListTmate = m_alarmUpdateObj->GetAlarms(moduleTmate);
+    list<cJSON *>::iterator ita;
+    for (ita = alarmsListTmate.begin(); ita != alarmsListTmate.end(); ita++)
+    {
+        UTL_LOG_INFO("paramsJson: %s", cJSON_Print(*ita));
+        cJSON *paramsJson = *ita;
+        if (CPluginUtil::GetJSONBooleanFieldValue(paramsJson, JKEY_ENABLED))
+        {
+            string alarmName = CPluginUtil::GetJSONStringFieldValue(paramsJson, JKEY_NAME);
+            cJSON *alarmParams = cJSON_Duplicate(cJSON_GetObjectItem(paramsJson, JKEY_PARAMS), cJSON_True);
+            // if (alarmName.compare(TmateAlerts::cpu_overload) == 0)
+            // {
+            //     m_alertsStatus = m_alertsStatus | AlertStatus::alarm1;
+            // }
+        }
+    }
+    UTL_LOG_INFO("alarm mask: %s", AlertStatus::GetName(m_alertsStatus).c_str());
 }
 
 void CTmatePlugin::Init()

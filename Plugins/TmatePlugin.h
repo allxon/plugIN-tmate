@@ -21,6 +21,15 @@ public:
     const static std::bitset<4> none;
 };
 
+class AlertStatus
+{
+public:
+    const static std::bitset<1> alarm1;
+    const static std::bitset<1> none;
+
+    static std::string GetName(std::bitset<1> alertStatus);
+};
+
 class TmateStates
 {
 public:
@@ -49,20 +58,23 @@ public:
     ~CTmatePlugin();
 
     CUpdatePluginJson *SetNotifyPluginUpdate();
-    bool AcceptReceivedCommand(cJSON *commandJson);
-    std::string ExecuteReceivedCommand(cJSON *commandJson, cJSON *cmdAck);
+    CAlarmUpdatePluginJson *GetAlarmUpdateObject() { return m_alarmUpdateObj; }
+    bool AcceptReceivedCommand(std::string cmdName, std::map<std::string, std::string> params, std::string& reason);
+    std::string ExecuteReceivedCommand(std::string cmdName, std::map<std::string, std::string> params, cJSON *cmdAck);
     void UpdateStates(std::bitset<4> updateMask);
     cJSON *AddStatusState();
     cJSON *AddVersionState();
     cJSON *AddWebLinkState();
     cJSON *AddSshLinkState();
     std::bitset<4> IsStateFilesChanged();
+    void UpdateAlarmsData(const char *payload);
 
     std::string m_pluginPath;
     std::string m_statusOutput;
     std::string m_versionOutput;
     std::string m_webOutput;
     std::string m_sshOutput;
+    const static std::string moduleTmate;
 
 protected:
     void Init();
@@ -79,6 +91,8 @@ private:
     time_t versionTime;
     time_t webTime;
     time_t sshTime;
+    std::bitset<1> m_alertsStatus;
+    CAlarmUpdatePluginJson *m_alarmUpdateObj;
 };
 
 #endif

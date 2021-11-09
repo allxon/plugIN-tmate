@@ -59,23 +59,38 @@ void SendNotifyPluginCommandAcks(CWebSocketClient *ptr)
     for (itc=commands.begin(); itc!=commands.end(); itc++)
     {
         cJSON *command = *itc;
-        bool accepted = plugin->AcceptReceivedCommand(command);
+        string cmdName = CPluginUtil::GetJSONStringFieldValue(command, JKEY_NAME);
+        map<string, string> params;
+        cJSON *cmdParamsJson = cJSON_GetObjectItem(command, JKEY_PARAMS);
+        if (cmdParamsJson && cJSON_IsArray(cmdParamsJson))
+        {
+            cJSON *cmdParamJson;
+            cJSON_ArrayForEach(cmdParamJson, cmdParamsJson)
+            {
+                params.insert(pair<string, string>(CPluginUtil::GetJSONStringFieldValue(cmdParamJson, JKEY_NAME),
+                    CPluginUtil::GetJSONStringFieldValue(cmdParamJson, JKEY_VALUE)));
+            }
+        }
+        string reason;
+        bool accepted = plugin->AcceptReceivedCommand(cmdName, params, reason);
+        // UTL_LOG_INFO("=+=+=+ command %s, reason: %s", accepted? "Accepted" : "Rejected", reason.c_str());
         cJSON *cmdAcks = cJSON_CreateArray();
         cJSON *cmdAck = cJSON_CreateObject();
-        cJSON_AddStringToObject(cmdAck, JKEY_NAME, CPluginUtil::GetJSONStringFieldValue(command, JKEY_NAME).c_str());
-        cJSON_AddStringToObject(cmdAck, JKEY_RESULT, accepted? "OK" : "Command not found.");
+        cJSON_AddStringToObject(cmdAck, JKEY_NAME, cmdName.c_str());
+        cJSON_AddStringToObject(cmdAck, JKEY_RESULT, reason.c_str());
         cJSON_AddItemToArray(cmdAcks, cmdAck);
         char *cmdAcksJsonRpcString = plugin->SetNotifyCommandAcks(receivedCommand, moduleName, accepted? AckState::ACCEPTED : AckState::REJECTED, cmdAcks);
         if (cmdAcksJsonRpcString == NULL) continue;
         ptr->SendPluginNotify(ptr, cmdAcksJsonRpcString);
         UTL_LOG_INFO("Acks Command #1: %s", cmdAcksJsonRpcString);
         free(cmdAcksJsonRpcString);
+        sleep(2);
 
         // run what accepted to execute and send 2nd cmdack afterword.
         if (accepted)
         {
             cJSON *execAck = cJSON_CreateObject();
-            string execState = plugin->ExecuteReceivedCommand(command, execAck);
+            string execState = plugin->ExecuteReceivedCommand(cmdName, params, execAck);
             cJSON *execAcks = cJSON_CreateArray();
             cJSON_AddItemToArray(execAcks, execAck);
             char *execAcksJsonRpcString = plugin->SetNotifyCommandAcks(receivedCommand, moduleName, execState, execAcks);
@@ -233,7 +248,10 @@ void CWebSocketClient::On_message(void* c, websocketpp::connection_hdl hdl, WebC
     }
     else if (MessageType::api_notifyPluginAlarmUpdate.compare(msgType) == 0) // notifyPluginAlarmUpdate
     {
-        ptr->TestSDKUpdateAlarms(payload);
+        CTmatePlugin *plugin = (CTmatePlugin *) ptr->GetSamplePlugin();
+        if (!plugin) return;
+        plugin->UpdateAlarmsData(payload);
+
         return;
     }
 #endif
@@ -360,31 +378,39 @@ static UTLTHREAD_FN_DECL NotifyUpdateThread(void* arg)
         while(ptr->WebClientIsAlive())
         {
             sleep(0);
-            if (ptr != NULL && ptr->m_wsConnectionOpened)
+            // UTL_LOG_INFO("1. retry %d, m_wsConnectionOpened = %d", retry, ptr->m_wsConnectionOpened);
+            if (ptr->m_wsConnectionOpened)
             {
                 currConnState = connection->getCurrentState();
-                if (currConnState == &CWebsocketConnected::getInstance() || currConnState == &CDeviceOffline::getInstance())
+                // UTL_LOG_INFO("connectionState: %d", currConnState->mReason);
+                if (currConnState == &CWebsocketConnected::getInstance())
                 {
-                    if (currConnState == &CDeviceOffline::getInstance())
-                    {
-                        int delay = CWebSocketClient::ExponentialRetryPause(++retryTimes);
-                        UTL_LOG_INFO("DeviceOffline: sleep %d secs in the %d times.", delay, retryTimes);
-                        sleep(delay);
-                        connection->toggle();
-                    }
+                    UTL_LOG_INFO("WebsocketConnected");
                     ptr->SendNotifyPluginUpdate();
 #ifdef TEST_STATES_METRICS_EVENTS
-                    needCheckStates = true;
+                    if (updatePluginObj && updatePluginObj->IsUpdated())
+                    {
+                        needCheckStates = true;
+                    }
 #endif
+                }
+                else if (currConnState == &CDeviceOffline::getInstance())
+                {
+                    int delay = CWebSocketClient::ExponentialRetryPause(++retryTimes);
+                    UTL_LOG_INFO("DeviceOffline: sleep %d secs in the %d times.", delay, retryTimes);
+                    sleep(delay);
+                    connection->toggle();
                 }
             }
             else
             {
-                sleep(CWebSocketClient::ExponentialRetryPause(retry++));
                 UTL_LOG_INFO("Waiting for WebSocket connection to open...%d", retry);
+                sleep(CWebSocketClient::ExponentialRetryPause(retry++));
             }
+
             if (updatePluginObj && updatePluginObj->IsUpdated())
             {
+                // UTL_LOG_INFO("loop... 3sec");
                 sleep(3);
             }
         };
@@ -466,24 +492,6 @@ bool CWebSocketClient::SendPluginNotify(CWebSocketClient *ptr, const char *notif
         return true;
     }
     else return false;
-}
-
-void CWebSocketClient::TestSDKUpdateAlarms(const char *payload)
-{
-    // UTL_LOG_INFO("===*** TestSDKUpdateAlarms() ***===:\n%s", payload);
-    if (!GetSamplePlugin())
-    {
-        UTL_LOG_WARN("Unknown plugin object.");
-        return;
-    }
-
-    CAlarmUpdatePluginJson *alarmUpdateObj = GetAlarmUpdateObject();
-
-    if (m_alarmUpdateObj) delete(m_alarmUpdateObj);
-    m_alarmUpdateObj = new CAlarmUpdatePluginJson(payload, GetSamplePlugin()->accessKey);
-    UTL_LOG_INFO("new alarmUpdateObj object.");
-
-    // check if need to trigger alert...
 }
 #endif
 
@@ -569,13 +577,11 @@ CWebSocketClient::CWebSocketClient(string ipaddr, string port)
 #ifdef TEST_STATES_METRICS_EVENTS
     m_threadDataHandle.handle = -1;
 #endif
-    m_alarmUpdateObj = NULL;
     m_plugin = NULL;
 }
 
 CWebSocketClient::~CWebSocketClient()
 {
-    if (m_alarmUpdateObj != NULL) delete(m_alarmUpdateObj);
     if (m_pwebclient) delete(m_pwebclient);
     m_client.stop();
     m_threadstart = false;
