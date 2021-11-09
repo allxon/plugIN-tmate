@@ -13,7 +13,7 @@
 #define JKEY_RESULT                  "result"
 
 
-class AckState {
+class PLUGIN_API AckState {
 public:
     const static std::string ACCEPTED;
     const static std::string ACKED;
@@ -21,7 +21,7 @@ public:
     const static std::string ERRORED;
 };
 
-class CCommandPluginJson: public CPluginUtil {
+class PLUGIN_API CCommandPluginJson: public CPluginUtil {
 public:
     CCommandPluginJson(const char *commandsJsonString, std::string accessKey);
     ~CCommandPluginJson();
@@ -49,7 +49,7 @@ private:
 };
 
 
-class CCommandAcksPluginJson: public CBasePluginObject {
+class PLUGIN_API CCommandAcksPluginJson: public CBasePluginObject {
 public:
     CCommandAcksPluginJson();
     ~CCommandAcksPluginJson();
@@ -60,11 +60,11 @@ public:
     cJSON *GetJsonrpcRequest(cJSON *paramJson);
     cJSON *GetJsonrpcRequest(cJSON *paramJson, bool unformatted);
     cJSON *CreateCommandAcksAcceptedParamsObj(cJSON *commandAcksJson);
-    cJSON *CreateCommandAcksAckedParamsObj(cJSON *commandAcksJson);
+    cJSON *CreateCommandAcksAckedParamsObj(cJSON *commandAcksJson, cJSON *statesJson = NULL);
     cJSON *CreateCommandAcksRejectedParamsObj(cJSON *commandAcksJson);
     cJSON *CreateCommandAcksErroredParamsObj(cJSON *commandAcksJson);
     static cJSON *CreateCommandAcksAcceptedParamsObj(const char *appGUID, const char *commandId, const char *commandSource, const char *moduleName, cJSON *commandAcksJson);
-    static cJSON *CreateCommandAcksAckedParamsObj(const char *appGUID, const char *commandId, const char *commandSource, const char *moduleName, cJSON *commandAcksJson);
+    static cJSON *CreateCommandAcksAckedParamsObj(const char *appGUID, const char *commandId, const char *commandSource, const char *moduleName, cJSON *commandAcksJson, cJSON *statesJson = NULL);
     static cJSON *CreateCommandAcksRejectedParamsObj(const char *appGUID, const char *commandId, const char *commandSource, const char *moduleName, cJSON *commandAcksJson);
     static cJSON *CreateCommandAcksErroredParamsObj(const char *appGUID, const char *commandId, const char *commandSource, const char *moduleName, cJSON *commandAcksJson);
     static cJSON *CreateCommandAcksItemJson(const char *name, const char *result);

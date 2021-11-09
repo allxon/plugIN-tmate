@@ -2,8 +2,14 @@
 #define     BASEPLUGINOBJECT_H_
 
 #include <stddef.h>
+#include "PluginEntry.h"
+#ifndef _WINDOWS
 #include "../Util/include/Comm.h"
 #include "../Util/include/cJSON.h"
+#else
+#include <string>
+#include "cJSON/cJSON.h"
+#endif // _WINDOWS
 
 
 #define ASCII_START     32
@@ -40,7 +46,7 @@
 #define MAX_MODULE_NAME_LENGTH          64
 
 
-class ApiVersion {
+class PLUGIN_API ApiVersion {
 public:
     const static std::string v1;
     const static std::string v2;
@@ -56,6 +62,7 @@ public:
     const static std::string notifyPluginEvent;
     const static std::string notifyPluginMetric;
     const static std::string notifyPluginAlarmUpdate;
+    const static std::string notifyPluginConfigUpdate;
     const static std::string notifyPluginAlert;
     const static std::string notifyAgentEvent;
 };
@@ -80,7 +87,7 @@ public:
 };
 
 
-class CPluginUtil {
+class PLUGIN_API CPluginUtil {
 public:
     static cJSON * GetJsonFromFile(std::string jsonFileName);
     static char* Utilityltoa(long number, char *buff);
@@ -98,7 +105,7 @@ protected:
 };
 
 
-class CBasePluginObject: public CPluginUtil {
+class PLUGIN_API CBasePluginObject: public CPluginUtil {
 public:
     CBasePluginObject();
     ~CBasePluginObject();

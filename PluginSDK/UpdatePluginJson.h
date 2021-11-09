@@ -17,11 +17,13 @@
 #define JKEY_LINK_URL                   "url"
 #define JKEY_LINK_ALIAS                 "alias"
 #define JKEY_DISPLAY_ON_PROPERTY        "displayOnProperty"
+#define JKEY_DISPLAY_MASK               "displayMask"
+#define JKEY_VALUE_ENCODING             "valueEncoding"
 #define JVALUE_T_STRING                 "string"
 #define JVALUE_T_TABLE                  "table"
 
 
-class DataTypes {
+class PLUGIN_API DataTypes {
 public:
     const static std::string properties;
     const static std::string states;
@@ -29,6 +31,7 @@ public:
     const static std::string metrics;
     const static std::string commands;
     const static std::string alarms;
+    const static std::string configs;
 };
 
 class AppType {
@@ -37,7 +40,7 @@ public:
     const static std::string oob;
 };
 
-class DisplayType {
+class PLUGIN_API DisplayType {
 public:
     const static std::string string;
     const static std::string table;
@@ -47,13 +50,19 @@ public:
     const static std::string icheckbox;
     const static std::string ilist;
     const static std::string file;
+    const static std::string tos;
     const static std::string temperature;
     const static std::string displayOn;
     const static std::string valueFromProperty;
 };
 
+class ValueEncoding {
+public:
+    const static std::string none;
+    const static std::string base64;
+};
 
-class CUpdatePluginJson: public CBasePluginObject {
+class PLUGIN_API CUpdatePluginJson: public CBasePluginObject {
 public:
     CUpdatePluginJson();
     ~CUpdatePluginJson();
@@ -67,7 +76,7 @@ public:
     cJSON *RenewUpdateJsonObject(bool unformatted);
     cJSON *CreateUpdateParamsObj(const char *appName, const char *displayName, std::string appType, const char *version, const char *startCommand, const char *stopCommand,cJSON *modulesJson);
     static cJSON *CreateUpdateModulesItemJson(const char *moduleName, const char *displayName, const char *description, cJSON *properties, cJSON *states, cJSON *events,
-        cJSON *metrics, cJSON *commands, cJSON *alarms);
+        cJSON *metrics, cJSON *commands, cJSON *alarms, cJSON *configs);
     static cJSON *CreateUpdatePropertiesItemJson(const char *name, const char *displayName, const char *description,
         std::string displayType, const char *displayCategory, const char *value);
     static cJSON *CreateUpdatePropertiesItemJson(const char *name, const char *displayName, const char *description,
@@ -79,20 +88,25 @@ public:
     static cJSON *CreateUpdateCommandsItemJson(const char *name, const char *displayName, const char *description, const char *displayCategory,
         cJSON *paramsJson, cJSON *displayOnPropertyJson = NULL);
     static cJSON *CreateUpdateCommandParamsItemJson(const char *name, const char *displayName, const char *description, const char *defaultValue, std::string displayType,
-        bool required, const char *displayFormat, cJSON *displayValues, std::string valueFromProperty);
-    static cJSON *CreateUpdateCommandParamsItemJson(const char *name, const char *displayName, const char *description, double defaultValue, std::string displayType,
-        bool required, const char *displayFormat, cJSON *displayValues, std::string valueFromProperty);
+        bool required, const char *displayFormat, cJSON *displayValues, std::string valueFromProperty, bool displayMask = false, std::string valueEncoding = ValueEncoding::none);
     static cJSON *CreateUpdateAlarmsItemJson(const char *name, const char *displayName, const char *description, const char *displayCategory,
         cJSON *paramsJson);
-    static cJSON *CreateUpdateAlarmParamsItemJson(const char *name, const char *displayName, const char *description, std::string displayType,
-        bool required, const char *displayFormat = NULL, cJSON *displayValues = NULL);
+    static cJSON *CreateUpdateAlarmParamsItemJson(const char *name, const char *displayName, const char *description, const char *defaultValue, std::string displayType,
+        bool required, const char *displayFormat = NULL, cJSON *displayValues = NULL, bool displayMask = false, std::string valueEncoding = ValueEncoding::none);
+    static cJSON *CreateUpdateConfigsItemJson(const char *name, const char *displayName, const char *description, const char *displayCategory,
+        cJSON *paramsJson);
+    static cJSON *CreateUpdateConfigParamsItemJson(const char *name, const char *displayName, const char *description, const char *defaultValue, std::string displayType,
+        bool required, const char *displayFormat = NULL, cJSON *displayValues = NULL, bool displayMask = false, std::string valueEncoding = ValueEncoding::none);
 
 private:
     cJSON *m_updateJsonObject;
     bool m_isUpdated;
 
-    static cJSON *CreateUpdateCommandParamsItemJson(const char *name, const char *displayName, const char *description, std::string displayType,
-        bool required, const char *displayFormat = NULL, cJSON *displayValues = NULL, std::string valueFromProperty = "");
+    static cJSON *CreateUpdateCfgsItemJson(const char *name, const char *displayName, const char *description, const char *displayCategory,
+        cJSON *paramsJson);
+    static cJSON *CreateUpdateConfigParamsItemJson(const char *name, const char *displayName, const char *description, std::string displayType,
+        bool required, const char *displayFormat = NULL, cJSON *displayValues = NULL, std::string defaultValue = "", std::string valueFromProperty = "", bool displayMask = false,
+        std::string valueEncoding = ValueEncoding::none);
 };
 
 #endif

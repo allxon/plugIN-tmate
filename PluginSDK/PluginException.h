@@ -3,9 +3,10 @@
 
 #include <exception>
 #include <string>
+#include "PluginEntry.h"
 
 
-class CPluginException : virtual public std::exception
+class PLUGIN_API CPluginException : virtual public std::exception
 {
 public:
     enum ErrorNumber
@@ -16,7 +17,11 @@ public:
         REQUIRED_DATA,
         USAGE_ERROR,
         ACCESSKEY_IS_MISSING,
-        ERROR
+#ifndef _WINDOWS
+        ERROR = -1,
+#else
+        UNKOWN
+#endif // !_WINDOWS
     };
 
     CPluginException(const std::string& msg, int errNum):

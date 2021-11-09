@@ -4,7 +4,7 @@
 #include "UpdatePluginJson.h"
 #include "LocalCommandPluginJson.h"
 #include <map>
-
+#include <list>
 #define JKEY_APIVERSION         "apiVersion"
 #define JKEY_UNFORMATTED_JSON   "unformattedJson"
 #define JKEY_DESTINATION_IP     "destinationIP"
@@ -22,7 +22,7 @@ public:
     std::string description;
 };
 
-class CUpdateProperty : public CUpdateInfo {
+class PLUGIN_API CUpdateProperty : public CUpdateInfo {
 public:
     CUpdateProperty();
     CUpdateProperty(std::string name, std::string displayCategory, std::string displayName, std::string description,
@@ -36,7 +36,7 @@ public:
     std::map<std::string, std::list<std::string> > valueFromProperty;
 };
 
-class CUpdateState : public CUpdateInfo {
+class PLUGIN_API CUpdateState : public CUpdateInfo {
 public:
     CUpdateState();
     CUpdateState(std::string name, std::string displayCategory, std::string displayName, std::string description,
@@ -46,7 +46,7 @@ public:
     std::string displayType;
 };
 
-class CUpdateMetric : public CUpdateInfo {
+class PLUGIN_API CUpdateMetric : public CUpdateInfo {
 public:
     CUpdateMetric();
     CUpdateMetric(std::string name, std::string displayCategory, std::string displayName, std::string description,
@@ -57,19 +57,20 @@ public:
     std::string displayUnit;
 };
 
-class CUpdateEvent : public CUpdateInfo {
+class PLUGIN_API CUpdateEvent : public CUpdateInfo {
 public:
     CUpdateEvent();
     CUpdateEvent(std::string name, std::string displayCategory, std::string displayName, std::string description);
     ~CUpdateEvent();
 };
 
-class CUpdateControlParam {
+class PLUGIN_API CUpdateConfigParam {
 public:
-    CUpdateControlParam();
-    CUpdateControlParam(std::string name, std::string displayName, std::string description, std::string displayType, 
-        bool required, std::string requiredOn, std::string displayFormat, std::list<std::string> &displayValues);
-    ~CUpdateControlParam();
+    CUpdateConfigParam();
+    CUpdateConfigParam(std::string name, std::string displayName, std::string description, std::string displayType, 
+        bool required, std::string requiredOn, std::string displayFormat, std::list<std::string> &displayValues,
+        std::string defaultValue = "", bool displayMask = false, std::string valueEncoding = ValueEncoding::none);
+    ~CUpdateConfigParam();
 
     std::string name;
     std::string displayName;
@@ -79,29 +80,32 @@ public:
     std::string requiredOn;
     std::string displayFormat;
     std::list<std::string> displayValues;
+    std::string defaultValue;
+    bool displayMask;
+    std::string valueEncoding;
 };
 
-class CUpdateCommandParam : public CUpdateControlParam {
+class PLUGIN_API CUpdateCommandParam : public CUpdateConfigParam {
 public:
     CUpdateCommandParam();
     CUpdateCommandParam(std::string name, std::string displayName, std::string description, std::string displayType, 
         bool required, std::string requiredOn, std::string displayFormat, std::list<std::string> &displayValues,
-        std::string defaultValue, std::string valueFromProperty = "");
+        std::string defaultValue, std::string valueFromProperty = "", bool displayMask = false, std::string valueEncoding = ValueEncoding::none);
     ~CUpdateCommandParam();
 
-    std::string defaultValue;
     std::string valueFromProperty;
 };
 
-class CUpdateAlarmParam : public CUpdateControlParam {
+class PLUGIN_API CUpdateAlarmParam : public CUpdateConfigParam {
 public:
     CUpdateAlarmParam();
     CUpdateAlarmParam(std::string name, std::string displayName, std::string description, std::string displayType, 
-        bool required, std::string requiredOn, std::string displayFormat, std::list<std::string> &displayValues);
+        bool required, std::string requiredOn, std::string displayFormat, std::list<std::string> &displayValues,
+        std::string defaultValue = "", bool displayMask = false, std::string valueEncoding = ValueEncoding::none);
     ~CUpdateAlarmParam();
 };
 
-class CUpdateCommand : public CUpdateInfo {
+class PLUGIN_API CUpdateCommand : public CUpdateInfo {
 public:
     CUpdateCommand();
     CUpdateCommand(std::string name, std::string displayCategory, std::string displayName, std::string description,
@@ -114,7 +118,7 @@ public:
     std::map<std::string, std::list<std::string> > displayOnProperty;
 };
 
-class CUpdateAlarm : public CUpdateInfo {
+class PLUGIN_API CUpdateAlarm : public CUpdateInfo {
 public:
     CUpdateAlarm();
     CUpdateAlarm(std::string name, std::string displayCategory, std::string displayName, std::string description,
@@ -124,12 +128,22 @@ public:
     std::list<CUpdateAlarmParam *> params;
 };
 
-class CUpdateModule {
+class CUpdateConfig : public CUpdateInfo {
+public:
+    CUpdateConfig();
+    CUpdateConfig(std::string name, std::string displayCategory, std::string displayName, std::string description,
+        std::list<CUpdateConfigParam *> &params);
+    ~CUpdateConfig();
+
+    std::list<CUpdateConfigParam *> params;
+};
+
+class PLUGIN_API CUpdateModule {
 public:
     CUpdateModule();
     CUpdateModule(std::string moduleName, std::string displayName, std::string description, std::list<CUpdateProperty *> &properties,
         std::list<CUpdateState *> &states, std::list<CUpdateMetric *> &metrics, std::list<CUpdateEvent *> &events,
-        std::list<CUpdateCommand *> &commands, std::list<CUpdateAlarm *> &alarms);
+        std::list<CUpdateCommand *> &commands, std::list<CUpdateAlarm *> &alarms, std::list<CUpdateConfig *> &configs);
     ~CUpdateModule();
 
     cJSON *GetUpdateModule();
@@ -143,9 +157,10 @@ public:
     std::list<CUpdateEvent *> events;
     std::list<CUpdateCommand *> commands;
     std::list<CUpdateAlarm *> alarms;
+    std::list<CUpdateConfig *> configs;
 };
 
-class CUpdateParams {
+class PLUGIN_API CUpdateParams {
 public:
     CUpdateParams();
     CUpdateParams(std::string appGUID, std::string appName, std::string displayName, std::string type, std::string version,
@@ -169,7 +184,7 @@ private:
     CUpdatePluginJson *pluginUpdateObj;
 };
 
-class CLocalCommandParam {
+class PLUGIN_API CLocalCommandParam {
 public:
     CLocalCommandParam();
     CLocalCommandParam(std::string name, std::string value);
@@ -179,7 +194,7 @@ public:
     std::string value;
 };
 
-class CLocalCommand {
+class PLUGIN_API CLocalCommand {
 public:
     CLocalCommand();
     CLocalCommand(std::string name, std::list<CLocalCommandParam *> &params);
@@ -189,7 +204,7 @@ public:
     std::list<CLocalCommandParam *> params;
 };
 
-class CLocalCommandParams {
+class PLUGIN_API CLocalCommandParams {
 public:
     CLocalCommandParams();
     CLocalCommandParams(std::string clientAppGUID, std::string appGUID, std::string serialNumber, std::string moduleName,

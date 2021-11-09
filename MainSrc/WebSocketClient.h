@@ -5,10 +5,8 @@
 #include "../websocket/websocketpp/client.hpp"
 #include "../Util/include/Utl_thread.h"
 #include "../Util/include/Utl_mutex.h"
-#include "../Util/include/BasePluginObject.h"
-#include "../Util/include/UpdatePluginJson.h"
-#include "../Util/include/CommandAcksPluginJson.h"
-#include "../Util/include/AlertsPluginJson.h"
+#include "../PluginSDK/BasePluginObject.h"
+#include "../PluginSDK/UpdatePluginJson.h"
 #include "../Plugins/PluginSample.h"
 #include "Connection.h"
 
@@ -16,8 +14,6 @@ extern CConnection* connection;
 extern CConnectionState* currConnState;
 extern int retryConnectWebsocket;
 
-// Set this flag to disable SSL
-// #define WS_NO_TLS_CLIENT
 
 #define TEST_UPDATE
 #ifdef TEST_UPDATE
@@ -30,7 +26,6 @@ extern int retryConnectWebsocket;
 
 typedef websocketpp::client<websocketpp::config::asio_tls_client> WebClient;
 typedef std::shared_ptr<boost::asio::ssl::context> ContextPtr;
-
 
 class CWEBCLIENTPARAM {
 public:
@@ -72,8 +67,7 @@ public:
     void SendNotifyPluginUpdate();
     CCommandPluginJson *GetReceivedCommand() { return m_receivedCommand; }
     void SetReceivedCommand(CCommandPluginJson *receivedCommand) { m_receivedCommand = receivedCommand; }
-    void ClearReceivedCommand() { delete(m_receivedCommand); m_receivedCommand = NULL; } 
-    char *TestSDKSendCommandAcks(bool afterAccepted, CCommandPluginJson *receivedCommand);
+    void ClearReceivedCommand() { delete(m_receivedCommand); m_receivedCommand = NULL; }
 
     void ResetUpdateThreadHandle() { m_threadUpdateHandle.handle = -1; }
     pthread_t GetUpdateThreadHandle() { return m_threadUpdateHandle.handle; }

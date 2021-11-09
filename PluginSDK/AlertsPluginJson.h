@@ -2,14 +2,13 @@
 #define     ALERTSPLUGINJSON_H_
 
 #include "BasePluginObject.h"
+#include "ConfigsPluginJson.h"
 #include <list>
 
 
 #define JKEY_ALARMS                     "alarms"
-#define JKEY_MODULES                    "modules"
 #define JKEY_ENABLED                    "enabled"
 #define JKEY_ACTION                     "action"
-#define JKEY_TIME                       "time"
 #define JKEY_MESSAGE                    "message"
 
 
@@ -19,37 +18,17 @@ public:
     const static std::string resolve;
 };
 
-class CAlarmUpdatePluginJson: public CPluginUtil {
+class PLUGIN_API CAlarmUpdatePluginJson : public CConfigUpdatePluginJson {
 public:
     CAlarmUpdatePluginJson(const char *alarmsJsonString, std::string accessKey);
     ~CAlarmUpdatePluginJson();
 
-    std::string GetAccessKey() { return m_accessKey; }
-    void SetAccessKey(std::string accessKey) { m_accessKey = accessKey; }
-    std::string GetModuleName() { return m_moduleName; }
-    void SetModuleName(std::string moduleName) { m_moduleName = moduleName; }
-    std::string GetUpdateEpoch() { return m_updateEpoch; }
-    std::string GetVersion() { return m_version; }
-    void SetUpdateEpoch(std::string updateEpoch) { m_updateEpoch = updateEpoch; }
-    std::list<cJSON *> GetModulesParam() { return m_modules; }
-    bool IsValidSignature() { return m_validSignature; }
     std::list<cJSON *> GetAlarms(std::string moduleName);
     const char *GetAlarmsUpdateEpochTime(std::string moduleName);
-    
-private:
-    std::string m_accessKey;
-    std::string m_moduleName;
-    std::string m_updateEpoch;
-    std::string m_version;
-    std::list<cJSON *> m_modules;
-    bool m_validSignature;
-
-    void SetVersion(std::string version) { m_version = version; }
-    void ValidateAlarms(const char *alarmsJsonString);
 };
 
 
-class CAlertsPluginJson: public CBasePluginObject {
+class PLUGIN_API CAlertsPluginJson: public CBasePluginObject {
 public:
     CAlertsPluginJson();
     ~CAlertsPluginJson();

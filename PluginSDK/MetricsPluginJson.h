@@ -7,7 +7,7 @@
 #define JKEY_METRICS                "metrics"
 
 
-class CMetricsPluginJson: public CBasePluginObject {
+class PLUGIN_API CMetricsPluginJson: public CBasePluginObject {
 public:
     CMetricsPluginJson();
     ~CMetricsPluginJson();

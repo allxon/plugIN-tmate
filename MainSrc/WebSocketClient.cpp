@@ -1,11 +1,10 @@
 #include "WebSocketClient.h"
 #include "Log.h"
-#include "../Util/include/PluginException.h"
-#include "../Util/include/CommandAcksPluginJson.h"
-#include "../Util/include/StatesPluginJson.h"
-#include "../Util/include/EventsPluginJson.h"
-#include "../Util/include/MetricsPluginJson.h"
-#include "../Util/include/LocalCommandPluginJson.h"
+#include "../PluginSDK/PluginException.h"
+#include "../PluginSDK/StatesPluginJson.h"
+#include "../PluginSDK/EventsPluginJson.h"
+#include "../PluginSDK/MetricsPluginJson.h"
+#include "../PluginSDK/LocalCommandPluginJson.h"
 #include "../Util/include/Utl_file.h"
 #include "../Util/include/Utl_Log.h"
 #include "../Util/include/vpl_error.h"
@@ -514,7 +513,7 @@ static UTLTHREAD_FN_DECL NotifyDataThread(void* arg)
                 {
                     // Run states' scripts to see if there're changes need to be notified.
                     bitset<4> updateMask;
-                    /*if (stateCount == 1) */updateMask.set();
+                    updateMask.none();
                     // else updateMask.set().set(1,0);
 #ifdef DEBUG
                     UTL_LOG_INFO("updateMask = %s", updateMask.to_string<char,std::string::traits_type,std::string::allocator_type>().c_str());
