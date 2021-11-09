@@ -115,10 +115,10 @@ void CLocalCommandSampleConfig::GetSampleConfig(const char *configFile)
 
                 cJSON *serialNumberItem = cJSON_GetObjectItem(config, JKEY_CNFG_SERIALNUMBER);
                 if (serialNumberItem) serialNumber = string(serialNumberItem->valuestring);
-#ifdef DEBUG
-                UTL_LOG_INFO("apiVersion: %s, minify: %d, appGUID: %s, accessKey: %s, clientAppGUID: %s, moduleName: %s, destinationIP: %s, serialNumber: %s",
-                    apiVersion.c_str(), minify, appGUID.c_str(), accessKey.c_str(), clientAppGUID.c_str(), moduleName.c_str(), destinationIP.c_str(), serialNumber.c_str());
-#endif
+// #ifdef DEBUG
+//                 UTL_LOG_INFO("apiVersion: %s, minify: %d, appGUID: %s, accessKey: %s, clientAppGUID: %s, moduleName: %s, destinationIP: %s, serialNumber: %s",
+//                     apiVersion.c_str(), minify, appGUID.c_str(), accessKey.c_str(), clientAppGUID.c_str(), moduleName.c_str(), destinationIP.c_str(), serialNumber.c_str());
+// #endif
             }
         }
         catch (const exception & e)
@@ -142,9 +142,9 @@ CPluginSample::CPluginSample(CPluginSampleConfig *sampleConfig)
         this->minify = sampleConfig->GetMinify();
         this->appGUID = sampleConfig->GetAppGUID();
         if (ApiVersion::v2.compare(apiVersion) == 0) this->accessKey = sampleConfig->GetAccessKey();
-#ifdef DEBUG
-        UTL_LOG_INFO("apiVersion: %s, minify: %d, appGUID: %s, accessKey: %s", apiVersion.c_str(), minify, appGUID.c_str(), accessKey.c_str());
-#endif
+// #ifdef DEBUG
+//         UTL_LOG_INFO("apiVersion: %s, minify: %d, appGUID: %s, accessKey: %s", apiVersion.c_str(), minify, appGUID.c_str(), accessKey.c_str());
+// #endif
     }
     else UTL_LOG_INFO("Please get plugin sample config first. Usage: device_plugin plugin_config_[sample].json");
 }
@@ -190,7 +190,9 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
 {
     try {
         cJSON *updateParam = CPluginUtil::GetJsonFromFile(jsonFile);
-        UTL_LOG_INFO("File: %s, JSON: %s", jsonFile.c_str(), cJSON_Print(updateParam));
+#ifdef DEBUG
+        UTL_LOG_INFO("File: %s, JSON: %s", jsonFile.c_str(), cJSON_PrintUnformatted(updateParam));
+#endif
         if (updateParam)
         {
             string appGuid = CPluginUtil::GetJSONStringFieldValue(updateParam, JKEY_APP_GUID);
@@ -232,7 +234,8 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                             string description = CPluginUtil::GetJSONStringFieldValue(propertyJson, JKEY_DESCRIPTION);
                             string displayType = CPluginUtil::GetJSONStringFieldValue(propertyJson, JKEY_DISPLAY_TYPE);
                             list<map<string, string> > tableValue;
-                            if (displayType.compare(DisplayType::string) == 0)
+                            map<string, list<string> > valueFromProperty;
+                            if (displayType.compare(DisplayType::string) == 0 || displayType.compare(DisplayType::displayOn) == 0)
                             {
                                 tableValue.clear();
                                 string value = CPluginUtil::GetJSONStringFieldValue(propertyJson, JKEY_VALUE);
@@ -242,12 +245,18 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                             else if (displayType.compare(DisplayType::table) == 0)
                             {
                                 cJSON *tableJson = cJSON_GetObjectItem(propertyJson, JKEY_VALUE);
+                                UTL_LOG_INFO("value: %s", cJSON_PrintUnformatted(tableJson));
                                 cJSON *row;
                                 cJSON_ArrayForEach(row, tableJson)
                                 {
                                     map<string, string> rowItem;
-                                    rowItem.insert(pair<string, string>(row->string, row->valuestring));
-                                    tableValue.push_back(rowItem);
+                                    UTL_LOG_INFO("row: %s", cJSON_PrintUnformatted(row));
+                                    cJSON *column;
+                                    cJSON_ArrayForEach(column, row)
+                                    {
+                                        rowItem.insert(pair<string, string>(column->string, column->valuestring));
+                                        tableValue.push_back(rowItem);
+                                    }
                                 }
                                 lProperties.push_back(new CUpdateProperty(name, displayCategory, displayName, description,
                                     displayType, "", tableValue));
@@ -264,6 +273,50 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                                     tableValue.push_back(linkItem);
                                     lProperties.push_back(new CUpdateProperty(name, displayCategory, displayName, description,
                                         displayType, "", tableValue));
+                                }
+                            }
+                            else if (displayType.compare(DisplayType::valueFromProperty) == 0)
+                            {
+                                cJSON *valueFmPropJson = cJSON_GetObjectItem(propertyJson, JKEY_VALUE);
+                                if (valueFmPropJson)
+                                {
+                                    cJSON *valueItem;
+                                    cJSON_ArrayForEach(valueItem, valueFmPropJson)
+                                    {
+                                        // Handle displayValues data
+                                        cJSON *displayValues = cJSON_GetObjectItem(valueItem, JKEY_DISPLAY_VALUES);
+                                        if (displayValues && cJSON_IsArray(displayValues) == cJSON_True)
+                                        {
+                                            cJSON *optionValue;
+                                            list<string> listDisplayValues;
+                                            cJSON_ArrayForEach(optionValue, displayValues)
+                                            {
+                                                listDisplayValues.push_back(cJSON_GetStringValue(optionValue));
+                                            }
+                                            if (!listDisplayValues.empty()) valueFromProperty.insert(pair<string, list<string> >(JKEY_DISPLAY_VALUES, listDisplayValues));
+                                        }
+                                        // Handle defaultValue data if any.
+                                        string defaultValue = CPluginUtil::GetJSONStringFieldValue(valueItem, JKEY_DEFAULT_VALUE);
+                                        if (!defaultValue.empty())
+                                        {
+                                            list<string> listDefaultValue;
+                                            listDefaultValue.push_back(defaultValue);
+                                            valueFromProperty.insert(pair<string, list<string> >(JKEY_DEFAULT_VALUE, listDefaultValue));
+                                        }
+#ifdef DEBUG
+                                        for (auto it = valueFromProperty.begin(); it!=valueFromProperty.end(); it++)
+                                        {
+                                            UTL_LOG_INFO("valueFromProperty: %s", (*it).first.c_str());
+                                            list<string> lValues = (*it).second;
+                                            for (auto itl = lValues.begin(); itl!=lValues.end(); itl++)
+                                            {
+                                                UTL_LOG_INFO("value: %s", (*itl).c_str());
+                                            }
+                                        }
+#endif
+                                        lProperties.push_back(new CUpdateProperty(name, displayCategory, displayName, description,
+                                            displayType, "", tableValue, valueFromProperty));
+                                    }
                                 }
                             }
                         }
@@ -365,6 +418,7 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                                     string displayType = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_TYPE);
                                     string displayFormat;
                                     list<string> displayValues;
+                                    string valueFromProperty;
                                     if (displayType.compare(DisplayType::datetime) == 0) displayFormat = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_FORMAT);
                                     else if (displayType.compare(DisplayType::icheckbox) == 0 || displayType.compare(DisplayType::iswitch) == 0 || displayType.compare(DisplayType::ilist) == 0)
                                     {
@@ -374,12 +428,18 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                                         {
                                             displayValues.push_back(value->valuestring);
                                         }
+                                        if (displayType.compare(DisplayType::iswitch) == 0 || displayType.compare(DisplayType::icheckbox) == 0 ||
+                                            displayType.compare(DisplayType::ilist) == 0)
+                                        {
+                                            valueFromProperty = CPluginUtil::GetJSONStringFieldValue(paramJson, DisplayType::valueFromProperty.c_str());
+                                            // UTL_LOG_INFO("valueFromProperty: %s", valueFromProperty.c_str());
+                                        }
                                     }
                                     bool required = CPluginUtil::GetJSONBooleanFieldValue(paramJson, JKEY_REQUIRED);
-                                    string requiredOn = CPluginUtil::GetJSONStringFieldValue(paramJson, "requiredOn");
+                                    string requiredOn = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_REQUIRED_ON);
                                     string defaultValue = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DEFAULT_VALUE);
                                     lcmdParams.push_back(new CUpdateCommandParam(name, displayName, description, displayType,
-                                        required, requiredOn, displayFormat, displayValues, defaultValue));
+                                        required, requiredOn, displayFormat, displayValues, defaultValue, valueFromProperty));
                                 }
                             }
                             string name = CPluginUtil::GetJSONStringFieldValue(commandJson, JKEY_NAME);
@@ -387,8 +447,36 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                             string displayName = CPluginUtil::GetJSONStringFieldValue(commandJson, JKEY_DISPLAY_NAME);
                             string description = CPluginUtil::GetJSONStringFieldValue(commandJson, JKEY_DESCRIPTION);
                             string type = CPluginUtil::GetJSONStringFieldValue(commandJson, JKEY_TYPE);
+                            cJSON *displayOnPropertyJson = cJSON_GetObjectItem(commandJson, JKEY_DISPLAY_ON_PROPERTY);
+                            map<string, list<string> > displayOnProperty;
+                            if (displayOnPropertyJson)
+                            {
+                                if (cJSON_IsArray(displayOnPropertyJson) == cJSON_True)
+                                {
+                                    cJSON *property;
+                                    cJSON_ArrayForEach(property, displayOnPropertyJson)
+                                    {
+                                        cJSON *element;
+                                        cJSON_ArrayForEach(element, property)
+                                        {
+                                            list<string> propValues;
+                                            cJSON *propValuesJson = cJSON_GetObjectItem(element, element->string);
+                                            if (cJSON_IsArray(propValuesJson) == cJSON_True)
+                                            {
+                                                cJSON *propValueJson;
+                                                cJSON_ArrayForEach(propValueJson, propValuesJson)
+                                                {
+                                                    string propValue = cJSON_GetStringValue(propValueJson);
+                                                    if (!propValue.empty()) propValues.push_back(propValue);
+                                                }
+                                            }
+                                            if (!propValues.empty()) displayOnProperty.insert(pair<string, list<string> >(string(element->string), propValues));
+                                        }
+                                    }
+                                }
+                            }
                             
-                            lCommands.push_back(new CUpdateCommand(name, displayCategory, displayName, description, type, lcmdParams));
+                            lCommands.push_back(new CUpdateCommand(name, displayCategory, displayName, description, type, lcmdParams, displayOnProperty));
                         }
                     }
 
@@ -491,6 +579,7 @@ char *CPluginSample::SetNotifyCommandAcks(CCommandPluginJson *receivedCmds, stri
         char *cmdAckJsonRpcString = minify? cJSON_PrintUnformatted(cmdAckJsonRpc) : cJSON_Print(cmdAckJsonRpc);
         cJSON_Delete(cmdAckJsonRpc);
         delete(cmdAcksObj);
+        cmdAcksObj = NULL;
 
         return cmdAckJsonRpcString;
     }
