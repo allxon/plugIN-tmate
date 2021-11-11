@@ -6,6 +6,8 @@
 
 using namespace std;
 
+#define SCRIPT_EXT          ".sh"
+#define SCRIPT_OUTPUT_EXT   ".output"
 
 const bitset<4> StateUpdated::status = bitset<4>("0001");
 const bitset<4> StateUpdated::version = bitset<4>("0010");
@@ -59,7 +61,7 @@ CTmatePlugin::~CTmatePlugin()
 CUpdatePluginJson *CTmatePlugin::SetNotifyPluginUpdate()
 {
     string configFile = m_pluginPath;
-    configFile.append("config/tmatePluginUpdate.json");
+    configFile.append(CONFING_PATH).append(PLUGIN_UPDATE_CONFIG);
     CUpdatePluginJson *updatePluginObj = SetNotifyPluginUpdateFromFile(configFile);
 
     return updatePluginObj;
@@ -93,8 +95,8 @@ string CTmatePlugin::ExecuteReceivedCommand(string cmdName, map<string, string> 
         cmdName.compare(TmateCommands::install) == 0 || cmdName.compare(TmateCommands::uninstall) == 0)
     {
         string scriptCmd = m_pluginPath;
-        scriptCmd.append(SCRIPTS_COMMANDS_PATH).append(cmdName).append(".sh");
-        string cmdParam;
+        scriptCmd.append(SCRIPTS_COMMANDS_PATH).append(cmdName).append(SCRIPT_EXT);
+        string cmdParam = "";
         if (cmdName.compare(TmateCommands::start) == 0)
         {
             for (auto it=params.begin(); it!=params.end(); it++)
@@ -104,9 +106,9 @@ string CTmatePlugin::ExecuteReceivedCommand(string cmdName, map<string, string> 
                 if (paramValue.empty()) continue;
                 if (paramName.compare(TmateCommands::password) == 0)
                 {
-                    cmdParam = string("--").append(paramName).append("="); // set to cmdParam directly since it's the first argument.
+                    cmdParam = cmdParam.append("--").append(paramName).append("="); // set to cmdParam directly since it's the first argument.
                     cmdParam.append(paramValue);
-                    UTL_LOG_INFO("cmdParamL %s", cmdParam.c_str());
+                    UTL_LOG_INFO("cmdParam: %s", cmdParam.c_str());
                     break;
                 }
             }
@@ -114,15 +116,16 @@ string CTmatePlugin::ExecuteReceivedCommand(string cmdName, map<string, string> 
         string message;
         bool result;
         thread th1 = thread(CTmatePlugin::RunPluginScriptCmdOutput, scriptCmd, cmdParam, ref(result), ref(message));
-        if (cmdName.compare(TmateCommands::start) == 0)
-        {
-            th1.detach();
-            sleep(3);
-        }
-        else
-        {
+        // if (cmdName.compare(TmateCommands::start) == 0)
+        // {
+            // UTL_LOG_INFO("3. start to run script");
+            // th1.detach();
+            // sleep(3);
+        // }
+        // else
+        // {
             th1.join();
-        }
+        // }
 
         if (!cmdAck) cmdAck = cJSON_CreateObject();
         cJSON_AddStringToObject(cmdAck, JKEY_NAME, cmdName.c_str());
@@ -146,28 +149,28 @@ void CTmatePlugin::UpdateStates(bitset<4> updateMask)
     if ((updateMask & StateUpdated::status) == StateUpdated::status)
     {
         string cmdStatus = m_pluginPath;
-        cmdStatus.append(SCRIPTS_STATES_PATH).append(TmateStates::status).append(".sh");
+        cmdStatus.append(SCRIPTS_STATES_PATH).append(TmateStates::status).append(SCRIPT_EXT);
         RunStatesScript(cmdStatus);
     }
     
     if ((updateMask & StateUpdated::web) == StateUpdated::web)
     {
         string cmdWeb = m_pluginPath;
-        cmdWeb.append(SCRIPTS_STATES_PATH).append(TmateStates::web).append(".sh");
+        cmdWeb.append(SCRIPTS_STATES_PATH).append(TmateStates::web).append(SCRIPT_EXT);
         RunStatesScript(cmdWeb);
     }
     
     if ((updateMask & StateUpdated::ssh) == StateUpdated::ssh)
     {
         string cmdSsh = m_pluginPath;
-        cmdSsh.append(SCRIPTS_STATES_PATH).append(TmateStates::ssh).append(".sh");
+        cmdSsh.append(SCRIPTS_STATES_PATH).append(TmateStates::ssh).append(SCRIPT_EXT);
         RunStatesScript(cmdSsh);
     }
 
     if ((updateMask & StateUpdated::version) == StateUpdated::version)
     {
         string cmdVersion = m_pluginPath;
-        cmdVersion.append(SCRIPTS_STATES_PATH).append(TmateStates::version).append(".sh");
+        cmdVersion.append(SCRIPTS_STATES_PATH).append(TmateStates::version).append(SCRIPT_EXT);
         RunStatesScript(cmdVersion);
     }
 }
@@ -283,13 +286,14 @@ void CTmatePlugin::Init()
     sshTime = 0;
     m_pluginPath = string(PLUGINS_PATH).append(appGUID).append("/");
     m_statusOutput = m_pluginPath;
-    m_statusOutput.append(SCRIPTS_STATES_PATH).append(TmateStates::status).append(".output");
+    m_statusOutput.append(SCRIPTS_STATES_PATH).append(TmateStates::status).append(SCRIPT_OUTPUT_EXT);
     m_versionOutput = m_pluginPath;
-    m_versionOutput.append(SCRIPTS_STATES_PATH).append(TmateStates::version).append(".output");
+    m_versionOutput.append(SCRIPTS_STATES_PATH).append(TmateStates::version).append(SCRIPT_OUTPUT_EXT);
     m_webOutput = m_pluginPath;
-    m_webOutput.append(SCRIPTS_STATES_PATH).append(TmateStates::web).append(".output");
+    m_webOutput.append(SCRIPTS_STATES_PATH).append(TmateStates::web).append(SCRIPT_OUTPUT_EXT);
     m_sshOutput = m_pluginPath;
-    m_sshOutput.append(SCRIPTS_STATES_PATH).append(TmateStates::ssh).append(".output");
+    m_sshOutput.append(SCRIPTS_STATES_PATH).append(TmateStates::ssh).append(SCRIPT_OUTPUT_EXT);
+    m_alarmUpdateObj = NULL;
 }
 
 string CTmatePlugin::ReadOutput(const string outputName)
@@ -323,8 +327,8 @@ bool CTmatePlugin::RunStatesScript(string scriptCmd)
 cJSON *CTmatePlugin::GetStatesOutput(string pluginPath, string stateName)
 {
     string scriptName = pluginPath;
-    scriptName.append(SCRIPTS_STATES_PATH).append(stateName).append(".sh");
-    string scriptOutput = scriptName.substr(0, scriptName.find(".sh")).append(".output");
+    scriptName.append(SCRIPTS_STATES_PATH).append(stateName).append(SCRIPT_EXT);
+    string scriptOutput = scriptName.substr(0, scriptName.find(SCRIPT_EXT)).append(SCRIPT_OUTPUT_EXT);
     string message = ReadOutput(scriptOutput);
     cJSON *testState = cJSON_CreateObject();
     cJSON_AddStringToObject(testState, JKEY_NAME, stateName.c_str());
@@ -388,8 +392,8 @@ void CTmatePlugin::RunPluginScriptCmdOutput(string scriptCmd, string cmdParam, b
         scriptCmd.append(" ").append(cmdParam);
     }
     int status = system(scriptCmd.c_str());
-    UTL_LOG_INFO("run %s command, status = %x", scriptCmd.c_str(), status);
-    string scriptOutput = scriptName.substr(0, scriptName.find(".sh")).append(".output");
+    UTL_LOG_INFO("run %s command, status = %d", scriptCmd.c_str(), status);
+    string scriptOutput = scriptName.substr(0, scriptName.find(SCRIPT_EXT)).append(SCRIPT_OUTPUT_EXT);
     if (status < 0)
     {
         message.append("Error: ").append(strerror(errno)).append("occurred while running command ").append(scriptName);
