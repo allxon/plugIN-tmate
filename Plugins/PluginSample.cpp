@@ -776,10 +776,12 @@ bool CPluginSample::IsAlarmEnabled(string moduleName, CAlarmUpdatePluginJson *al
 
 CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdate()
 {
+    return NULL;
 }
 
 CLocalCommandPluginJson *CPluginSample::SetNotifyPluginLocalCommand()
 {
+    return NULL;
 }
 
 bool CPluginSample::AcceptReceivedCommand(cJSON *commandJson)

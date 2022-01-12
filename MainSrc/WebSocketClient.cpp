@@ -81,7 +81,6 @@ void SendNotifyPluginCommandAcks(CWebSocketClient *ptr)
         char *cmdAcksJsonRpcString = plugin->SetNotifyCommandAcks(receivedCommand, moduleName, accepted? AckState::ACCEPTED : AckState::REJECTED, cmdAcks);
         if (cmdAcksJsonRpcString == NULL) continue;
         ptr->SendPluginNotify(ptr, cmdAcksJsonRpcString);
-        UTL_LOG_INFO("Acks Command #1: %s", cmdAcksJsonRpcString);
         free(cmdAcksJsonRpcString);
         sleep(2);
 
@@ -577,6 +576,8 @@ CWebSocketClient::CWebSocketClient(string ipaddr, string port)
     m_threadDataHandle.handle = -1;
 #endif
     m_plugin = NULL;
+    m_retryWSConnection = 0;
+    m_retrySendUpdate = 0;
 }
 
 CWebSocketClient::~CWebSocketClient()
