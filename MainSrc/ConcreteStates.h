@@ -14,7 +14,7 @@ public:
     static CConnectionState& getInstance();
 
 private:
-    CInit() { /*UTL_LOG_INFO("CInit()")*/; }
+    CInit() { mReason = CInit::NONE;/*UTL_LOG_INFO("CInit()");*/ }
     CInit(const CInit& other);
     CInit& operator=(const CInit& other);
 };
@@ -28,7 +28,7 @@ public:
     static CConnectionState& getInstance();
 
 private:
-    CAgentAlive() { /*UTL_LOG_INFO("CAgentAlive()")*/; }
+    CAgentAlive() { mReason = CAgentAlive::NONE;/*UTL_LOG_INFO("CAgentAlive()");*/ }
     CAgentAlive(const CAgentAlive& other);
     CAgentAlive& operator=(const CAgentAlive& other);
 };
@@ -42,7 +42,7 @@ public:
     static CConnectionState& getInstance();
 
 private:
-    CAgentDisabled() { /*UTL_LOG_INFO("CAgentDisabled()")*/; }
+    CAgentDisabled() { mReason = CAgentDisabled::NONE;/*UTL_LOG_INFO("CAgentDisabled()");*/ }
     CAgentDisabled(const CAgentDisabled& other);
     CAgentDisabled& operator=(const CAgentDisabled& other);
 };
@@ -56,7 +56,7 @@ public:
     static CConnectionState& getInstance();
 
 private:
-    CWebsocketConnected() { /*UTL_LOG_INFO("CWebsocketConnected()")*/; }
+    CWebsocketConnected() { mReason = CWebsocketConnected::NONE;/*UTL_LOG_INFO("CWebsocketConnected()");*/ }
     CWebsocketConnected(const CWebsocketConnected& other);
     CWebsocketConnected& operator=(const CWebsocketConnected& other);
 };
@@ -71,7 +71,7 @@ public:
     // void setRetryTimes(int retryTimes) { mRetryTimes = retryTimes; }
 
 private:
-    CDeviceOffline() { /*UTL_LOG_INFO("CDeviceOffline()")*/; }
+    CDeviceOffline() { mReason = CDeviceOffline::NONE;/*UTL_LOG_INFO("CDeviceOffline()");*/ }
     CDeviceOffline(const CDeviceOffline& other);
     CDeviceOffline& operator=(const CDeviceOffline& other);
     // int mRetryTimes;
@@ -87,7 +87,7 @@ public:
     // void setRetryTimes(int retryTimes) { mRetryTimes = retryTimes; }
 
 private:
-    CWebsocketDisconnected() { /*UTL_LOG_INFO("CWebsocketDisconnected()")*/; }
+    CWebsocketDisconnected() { mReason = CWebsocketDisconnected::NONE;/*UTL_LOG_INFO("CWebsocketDisconnected()");*/ }
     CWebsocketDisconnected(const CWebsocketDisconnected& other);
     CWebsocketDisconnected& operator=(const CWebsocketDisconnected& other);
     // int mRetryTimes;
@@ -102,7 +102,7 @@ public:
     static CConnectionState& getInstance();
 
 private:
-    CPluginRegistered() { /*UTL_LOG_INFO("CPluginRegistered()")*/; }
+    CPluginRegistered() { mReason = CPluginRegistered::NONE;/*UTL_LOG_INFO("CPluginRegistered()");*/ }
     CPluginRegistered(const CPluginRegistered& other);
     CPluginRegistered& operator=(const CPluginRegistered& other);
 };
@@ -117,10 +117,10 @@ public:
     void setLastState(CConnectionState& lastState) { mLastState = &lastState; }
 
 private:
-    CServerOffline() { /*UTL_LOG_INFO("CServerOffline()")*/; }
+    CServerOffline() { mReason = CServerOffline::NONE;/*UTL_LOG_INFO("CServerOffline()");*/ }
     CServerOffline(const CServerOffline& other);
     CServerOffline& operator=(const CServerOffline& other);
-    CConnectionState* mLastState;
+    CConnectionState* mLastState = NULL;
 };
 
 class CExit : public CConnectionState
@@ -132,7 +132,7 @@ public:
     static CConnectionState& getInstance();
 
 private:
-    CExit() { /*UTL_LOG_INFO("CExit()")*/; }
+    CExit() { mReason = CExit::NONE;/*UTL_LOG_INFO("CExit()");*/ }
     CExit(const CExit& other);
     CExit& operator=(const CExit& other);
 };
