@@ -129,6 +129,67 @@ void CLocalCommandSampleConfig::GetSampleConfig(const char *configFile)
     }
 }
 
+CUpdateConfigParam * GetUpdateConfigParam(cJSON *paramJson)
+{
+    string name = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_NAME);
+    string displayName = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_NAME);
+    string description = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DESCRIPTION);
+    string displayType = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_TYPE);
+    string defaultValue = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DEFAULT_VALUE);
+    bool required = CPluginUtil::GetJSONBooleanFieldValue(paramJson, JKEY_REQUIRED);
+    string requiredOn = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_REQUIRED_ON);
+    string displayFormat;
+    list<string> displayValues;
+    bool displayMask = false;
+    string valueEncoding;
+    if (displayType.compare(DisplayType::string) == 0)
+    {
+        displayMask = CPluginUtil::GetJSONBooleanFieldValue(paramJson, JKEY_DISPLAY_MASK);
+        valueEncoding = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_VALUE_ENCODING);
+    }
+    else if (displayType.compare(DisplayType::datetime) == 0) displayFormat = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_FORMAT);
+    else if (displayType.compare(DisplayType::icheckbox) == 0 || displayType.compare(DisplayType::iswitch) == 0 ||
+        displayType.compare(DisplayType::ilist) == 0)
+    {
+        cJSON *displayValuesJson = cJSON_GetObjectItem(paramJson, JKEY_DISPLAY_VALUES);
+        cJSON *value;
+        cJSON_ArrayForEach(value, displayValuesJson)
+        {
+            displayValues.push_back(value->valuestring);
+        }
+    }
+    // UTL_LOG_INFO("%s, %s, %s, %s, %d, %s, %s, %p, %s, %d, %s", name.c_str(), displayName.c_str(), description.c_str(), displayType.c_str(),
+    //     required, requiredOn.c_str(), displayFormat.c_str(), displayValues, defaultValue.c_str(), displayMask, valueEncoding.c_str());
+    return new CUpdateConfigParam(name, displayName, description, displayType, required, requiredOn, displayFormat, displayValues,
+        defaultValue, displayMask, valueEncoding);
+}
+
+CUpdateAlarmParam * GetUpdateAlarmParam(cJSON *paramJson)
+{
+    CUpdateConfigParam *cfgParam = GetUpdateConfigParam(paramJson);
+
+    return new CUpdateAlarmParam(cfgParam->m_name, cfgParam->m_displayName, cfgParam->m_description, cfgParam->m_displayType,
+        cfgParam->m_required, cfgParam->m_requiredOn, cfgParam->m_displayFormat, cfgParam->m_displayValues, cfgParam->m_defaultValue,
+        cfgParam->m_displayMask, cfgParam->m_valueEncoding);
+}
+
+CUpdateCommandParam * GetUpdateCommandParam(cJSON *paramJson)
+{
+    CUpdateConfigParam *cfgParam = GetUpdateConfigParam(paramJson);
+    string valueFromProperty;
+    if (cfgParam->m_displayType.compare(DisplayType::icheckbox) == 0 ||
+        cfgParam->m_displayType.compare(DisplayType::iswitch) == 0 ||
+        cfgParam->m_displayType.compare(DisplayType::ilist) == 0)
+    {
+        valueFromProperty = CPluginUtil::GetJSONStringFieldValue(paramJson, DisplayType::valueFromProperty.c_str());
+        // UTL_LOG_INFO("valueFromProperty: %s", valueFromProperty.c_str());
+    }
+    
+    return new CUpdateCommandParam(cfgParam->m_name, cfgParam->m_displayName, cfgParam->m_description, cfgParam->m_displayType,
+        cfgParam->m_required, cfgParam->m_requiredOn, cfgParam->m_displayFormat, cfgParam->m_displayValues, cfgParam->m_defaultValue,
+        valueFromProperty);
+}
+
 CPluginSample::CPluginSample()
 {
     this->apiVersion = ApiVersion::v2;
@@ -178,11 +239,11 @@ CUpdateModule *CPluginSample::GetModule(std::string moduleName)
 {
     if (moduleName.empty()) return NULL;
 
-    list<CUpdateModule *> modules = pluginData->modules;
+    list<CUpdateModule *> modules = pluginData->m_modules;
     list<CUpdateModule *>::iterator itm;
     for (itm=modules.begin(); itm!=modules.end(); itm++)
     {
-        if (moduleName.compare((*itm)->moduleName) == 0) return *itm;
+        if (moduleName.compare((*itm)->m_moduleName) == 0) return *itm;
     }
     return NULL;
 }
@@ -399,6 +460,7 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                     list<CUpdateCommand *> lCommands;
                     if (commandsJson) {
                         cJSON *commandJson;
+                        bool is2DArray = false;
                         cJSON_ArrayForEach(commandJson, commandsJson)
                         {
                             cJSON *paramsJson = cJSON_GetObjectItem(commandJson, JKEY_PARAMS);
@@ -407,43 +469,29 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                                 UTL_LOG_WARN("\"params\" of a command should be an array. Terminated parsing json file.");
                                 return NULL;
                             }
-                            list<CUpdateCommandParam *> lcmdParams;
+                            list<list<CUpdateCommandParam *> > lcmdParams;
                             if (paramsJson)
                             {
                                 cJSON *paramJson;
                                 cJSON_ArrayForEach(paramJson, paramsJson)
                                 {
-                                    string name = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_NAME);
-                                    string displayName = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_NAME);
-                                    string description = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DESCRIPTION);
-                                    string displayType = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_TYPE);
-                                    string displayFormat;
-                                    list<string> displayValues;
-                                    string valueFromProperty;
-                                    bool displayMask = false;
-                                    string valueEncoding;
-                                    if (displayType.compare(DisplayType::string) == 0)
+                                    list<CUpdateCommandParam *>lcmdRowParams;
+                                    is2DArray = cJSON_IsArray(paramJson);
+                                    UTL_LOG_INFO("is2DArray: %d", is2DArray);
+                                    if (is2DArray)
                                     {
-                                        displayMask = CPluginUtil::GetJSONBooleanFieldValue(paramJson, JKEY_DISPLAY_MASK);
-                                        valueEncoding = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_VALUE_ENCODING);
-                                    }
-                                    else if (displayType.compare(DisplayType::datetime) == 0) displayFormat = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_FORMAT);
-                                    else if (displayType.compare(DisplayType::icheckbox) == 0 || displayType.compare(DisplayType::iswitch) == 0 || displayType.compare(DisplayType::ilist) == 0)
-                                    {
-                                        cJSON *displayValuesJson = cJSON_GetObjectItem(paramJson, JKEY_DISPLAY_VALUES);
-                                        cJSON *value;
-                                        cJSON_ArrayForEach(value, displayValuesJson)
+                                        cJSON *paramRowJson;
+                                        cJSON_ArrayForEach(paramRowJson, paramJson)
                                         {
-                                            displayValues.push_back(value->valuestring);
+                                            UTL_LOG_INFO("paramRowJson: %s", cJSON_Print(paramRowJson));
+                                            lcmdRowParams.push_back(GetUpdateCommandParam(paramRowJson));
                                         }
-                                        valueFromProperty = CPluginUtil::GetJSONStringFieldValue(paramJson, DisplayType::valueFromProperty.c_str());
-                                        // UTL_LOG_INFO("valueFromProperty: %s", valueFromProperty.c_str());
                                     }
-                                    bool required = CPluginUtil::GetJSONBooleanFieldValue(paramJson, JKEY_REQUIRED);
-                                    string requiredOn = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_REQUIRED_ON);
-                                    string defaultValue = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DEFAULT_VALUE);
-                                    lcmdParams.push_back(new CUpdateCommandParam(name, displayName, description, displayType,
-                                        required, requiredOn, displayFormat, displayValues, defaultValue, valueFromProperty));
+                                    else
+                                    {
+                                        lcmdRowParams.push_back(GetUpdateCommandParam(paramJson));
+                                    }
+                                    lcmdParams.push_back(lcmdRowParams);
                                 }
                             }
                             string name = CPluginUtil::GetJSONStringFieldValue(commandJson, JKEY_NAME);
@@ -455,7 +503,7 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                             map<string, list<string> > displayOnProperty;
                             if (displayOnPropertyJson)
                             {
-                                if (cJSON_IsArray(displayOnPropertyJson) == cJSON_True)
+                                if (cJSON_IsArray(displayOnPropertyJson))
                                 {
                                     cJSON *property;
                                     cJSON_ArrayForEach(property, displayOnPropertyJson)
@@ -465,7 +513,7 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                                         {
                                             list<string> propValues;
                                             cJSON *propValuesJson = cJSON_GetObjectItem(element, element->string);
-                                            if (cJSON_IsArray(propValuesJson) == cJSON_True)
+                                            if (cJSON_IsArray(propValuesJson))
                                             {
                                                 cJSON *propValueJson;
                                                 cJSON_ArrayForEach(propValueJson, propValuesJson)
@@ -479,8 +527,34 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                                     }
                                 }
                             }
-                            
-                            lCommands.push_back(new CUpdateCommand(name, displayCategory, displayName, description, type, lcmdParams, displayOnProperty));
+                            //lCommands.push_back(new CUpdateCommand(name, displayCategory, displayName, description, type, lcmdParams, displayOnProperty));
+                            if (is2DArray)
+                            {
+                                // list<list<CUpdateCommandParam *> >::iterator ita;
+                                // for (ita = lcmdParams.begin(); ita != lcmdParams.end(); ita++)
+                                // {
+                                //     list<CUpdateCommandParam *>::iterator itb;
+                                //     for (itb = (*ita).begin(); itb != (*ita).end(); itb++)
+                                //     {
+                                //         CUpdateCommandParam *cmdParam = *itb;
+                                //         UTL_LOG_INFO("cmdParam: %p name- %s, required- %d, displayType- %s, requiredOn- %s",
+                                //             cmdParam, cmdParam->m_name.c_str(), cmdParam->m_required, cmdParam->m_displayType.c_str(), cmdParam->m_requiredOn.c_str());
+                                //     }
+                                // }
+                                lCommands.push_back(new CUpdateCommand(name, displayCategory, displayName, description, type, lcmdParams, displayOnProperty));
+                            }
+                            else
+                            {
+                                list<CUpdateCommandParam *> tmpLCommandParams;
+                                list<list<CUpdateCommandParam *> >::iterator it;
+                                for(it = lcmdParams.begin(); it != lcmdParams.end(); it++)
+                                {
+                                    list<CUpdateCommandParam *> lRowParams = *it;
+                                    list<CUpdateCommandParam *>::iterator itR = lRowParams.begin();
+                                    tmpLCommandParams.push_back(*itR);
+                                }
+                                lCommands.push_back(new CUpdateCommand(name, displayCategory, displayName, description, type, tmpLCommandParams, displayOnProperty));
+                            }
                         }
                     }
 
@@ -495,6 +569,7 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                     if (alarmsJson)
                     {
                         cJSON *alarmJson;
+                        bool is2DArray = false;
                         cJSON_ArrayForEach(alarmJson, alarmsJson)
                         {
                             cJSON *paramsJson = cJSON_GetObjectItem(alarmJson, JKEY_PARAMS);
@@ -503,37 +578,62 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                                 UTL_LOG_WARN("\"params\" of a alarm should be an array. Terminated parsing json file.");
                                 return NULL;
                             }
-                            list<CUpdateAlarmParam *> lalarmParams;
+                            list<list<CUpdateAlarmParam *> > lalarmParams;
                             if (paramsJson)
                             {
                                 cJSON *paramJson;
                                 cJSON_ArrayForEach(paramJson, paramsJson)
                                 {
-                                    string name = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_NAME);
-                                    string displayName = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_NAME);
-                                    string description = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DESCRIPTION);
-                                    string displayType = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_TYPE);
-                                    string displayFormat;
-                                    list<string> displayValues;
-                                    if (displayType.compare(DisplayType::datetime) == 0) displayFormat = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_FORMAT);
-                                    else if (displayType.compare(DisplayType::icheckbox) == 0 || displayType.compare(DisplayType::iswitch) == 0 || displayType.compare(DisplayType::ilist) == 0)
+                                    list<CUpdateAlarmParam *> lalarmRowParams;
+                                    is2DArray = cJSON_IsArray(paramJson);
+                                    UTL_LOG_INFO("is2DArray: %d", is2DArray);
+                                    if (is2DArray)
                                     {
-                                        cJSON *displayValuesJson = cJSON_GetObjectItem(paramJson, JKEY_DISPLAY_VALUES);
-                                        cJSON *value;
-                                        cJSON_ArrayForEach(value, displayValuesJson)
+                                        cJSON *paramRowJson;
+                                        cJSON_ArrayForEach(paramRowJson, paramJson)
                                         {
-                                            displayValues.push_back(value->valuestring);
+                                            UTL_LOG_INFO("paramRowJson: %s", cJSON_Print(paramRowJson));
+                                            lalarmRowParams.push_back(GetUpdateAlarmParam(paramRowJson));
                                         }
                                     }
-                                    bool required = CPluginUtil::GetJSONBooleanFieldValue(paramJson, JKEY_REQUIRED);
-                                    lalarmParams.push_back(new CUpdateAlarmParam(name, displayName, description, displayType, required, "", displayFormat, displayValues));
+                                    else
+                                    {
+                                        lalarmRowParams.push_back(GetUpdateAlarmParam(paramJson));
+                                    }
+                                    lalarmParams.push_back(lalarmRowParams);
                                 }
                             }
                             string name = CPluginUtil::GetJSONStringFieldValue(alarmJson, JKEY_NAME);
                             string displayCategory = CPluginUtil::GetJSONStringFieldValue(alarmJson, JKEY_DISPLAY_CATEGORY);
                             string displayName = CPluginUtil::GetJSONStringFieldValue(alarmJson, JKEY_DISPLAY_NAME);
                             string description = CPluginUtil::GetJSONStringFieldValue(alarmJson, JKEY_DESCRIPTION);
-                            lAlarms.push_back(new CUpdateAlarm(name, displayCategory, displayName, description, lalarmParams));
+                            if (is2DArray)
+                            {
+                                // list<list<CUpdateAlarmParam *> >::iterator ita;
+                                // for (ita = lalarmParams.begin(); ita != lalarmParams.end(); ita++)
+                                // {
+                                //     list<CUpdateAlarmParam *>::iterator itb;
+                                //     for (itb = (*ita).begin(); itb != (*ita).end(); itb++)
+                                //     {
+                                //         CUpdateAlarmParam *almParam = *itb;
+                                //         UTL_LOG_INFO("almParam: %p name- %s, required- %d, displayType- %s, requiredOn- %s",
+                                //             almParam, almParam->m_name.c_str(), almParam->m_required, almParam->m_displayType.c_str(), almParam->m_requiredOn.c_str());
+                                //     }
+                                // }
+                                lAlarms.push_back(new CUpdateAlarm(name, displayCategory, displayName, description, lalarmParams));
+                            }
+                            else
+                            {
+                                list<CUpdateAlarmParam *> tmpLAlarmParams;
+                                list<list<CUpdateAlarmParam *> >::iterator it;
+                                for(it = lalarmParams.begin(); it != lalarmParams.end(); it++)
+                                {
+                                    list<CUpdateAlarmParam *> lRowParams = *it;
+                                    list<CUpdateAlarmParam *>::iterator itR = lRowParams.begin();
+                                    tmpLAlarmParams.push_back(*itR);
+                                }
+                                lAlarms.push_back(new CUpdateAlarm(name, displayCategory, displayName, description, tmpLAlarmParams));
+                            }
                         }
                     }
 
@@ -548,6 +648,7 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                     if (configsJson)
                     {
                         cJSON *configJson;
+                        bool is2DArray = false;
                         cJSON_ArrayForEach(configJson, configsJson)
                         {
                             cJSON *paramsJson = cJSON_GetObjectItem(configJson, JKEY_PARAMS);
@@ -556,47 +657,63 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                                 UTL_LOG_WARN("\"params\" of a config should be an array. Terminated parsing json file.");
                                 return NULL;
                             }
-                            list<CUpdateConfigParam *> lconfigParams;
+                            list <list<CUpdateConfigParam *> > lconfigParams;
                             if (paramsJson)
                             {
                                 cJSON *paramJson;
                                 cJSON_ArrayForEach(paramJson, paramsJson)
                                 {
-                                    string name = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_NAME);
-                                    string displayName = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_NAME);
-                                    string description = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DESCRIPTION);
-                                    string displayType = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_TYPE);
-                                    string defaultValue = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DEFAULT_VALUE);
-                                    string displayFormat;
-                                    list<string> displayValues;
-                                    bool displayMask = false;
-                                    string valueEncoding;
-                                    if (displayType.compare(DisplayType::string) == 0)
+                                    UTL_LOG_INFO("%s", cJSON_Print(paramJson));
+                                    list<CUpdateConfigParam *> lconfigRowParams;
+                                    is2DArray = cJSON_IsArray(paramJson);
+                                    if (is2DArray)
                                     {
-                                        displayMask = CPluginUtil::GetJSONBooleanFieldValue(paramJson, JKEY_DISPLAY_MASK);
-                                        valueEncoding = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_VALUE_ENCODING);
-                                    }
-                                    else if (displayType.compare(DisplayType::datetime) == 0) displayFormat = CPluginUtil::GetJSONStringFieldValue(paramJson, JKEY_DISPLAY_FORMAT);
-                                    else if (displayType.compare(DisplayType::icheckbox) == 0 || displayType.compare(DisplayType::iswitch) == 0 ||
-                                        displayType.compare(DisplayType::ilist) == 0)
-                                    {
-                                        cJSON *displayValuesJson = cJSON_GetObjectItem(paramJson, JKEY_DISPLAY_VALUES);
-                                        cJSON *value;
-                                        cJSON_ArrayForEach(value, displayValuesJson)
+                                        UTL_LOG_INFO("2D array");
+                                        cJSON *paramRowJson;
+                                        cJSON_ArrayForEach(paramRowJson, paramJson)
                                         {
-                                            displayValues.push_back(value->valuestring);
+                                            UTL_LOG_INFO("paramRowJson: %s", cJSON_Print(paramRowJson));
+                                            lconfigRowParams.push_back(GetUpdateConfigParam(paramRowJson));
                                         }
                                     }
-                                    bool required = CPluginUtil::GetJSONBooleanFieldValue(paramJson, JKEY_REQUIRED);
-                                    lconfigParams.push_back(new CUpdateConfigParam(name, displayName, description, displayType,
-                                        required, "", displayFormat, displayValues, defaultValue, displayMask, valueEncoding));
+                                    else
+                                    {
+                                        lconfigRowParams.push_back(GetUpdateConfigParam(paramJson));
+                                    }
+                                    lconfigParams.push_back(lconfigRowParams);
                                 }
                             }
                             string name = CPluginUtil::GetJSONStringFieldValue(configJson, JKEY_NAME);
                             string displayCategory = CPluginUtil::GetJSONStringFieldValue(configJson, JKEY_DISPLAY_CATEGORY);
                             string displayName = CPluginUtil::GetJSONStringFieldValue(configJson, JKEY_DISPLAY_NAME);
                             string description = CPluginUtil::GetJSONStringFieldValue(configJson, JKEY_DESCRIPTION);
-                            lConfigs.push_back(new CUpdateConfig(name, displayCategory, displayName, description, lconfigParams));
+                            if (is2DArray)
+                            {
+                                // list<list<CUpdateConfigParam *> >::iterator ita;
+                                // for (ita = lconfigParams.begin(); ita != lconfigParams.end(); ita++)
+                                // {
+                                //     list<CUpdateConfigParam *>::iterator itb;
+                                //     for (itb = (*ita).begin(); itb != (*ita).end(); itb++)
+                                //     {
+                                //         CUpdateConfigParam *cfgParam = *itb;
+                                //         UTL_LOG_INFO("cfgParam: %p name- %s, required- %d, displayType- %s, requiredOn- %s",
+                                //             cfgParam, cfgParam->m_name.c_str(), cfgParam->m_required, cfgParam->m_displayType.c_str(), cfgParam->m_requiredOn.c_str());
+                                //     }
+                                // }
+                                lConfigs.push_back(new CUpdateConfig(name, displayCategory, displayName, description, lconfigParams));
+                            }
+                            else
+                            {
+                                list<CUpdateConfigParam *> tmpLConfigParams;
+                                list<list<CUpdateConfigParam *> >::iterator it;
+                                for(it = lconfigParams.begin(); it != lconfigParams.end(); it++)
+                                {
+                                    list<CUpdateConfigParam *> lRowParams = *it;
+                                    list<CUpdateConfigParam *>::iterator itR = lRowParams.begin();
+                                    tmpLConfigParams.push_back(*itR);
+                                }
+                                lConfigs.push_back(new CUpdateConfig(name, displayCategory, displayName, description, tmpLConfigParams));
+                            }
                         }
                     }
                     string moduleName = CPluginUtil::GetJSONStringFieldValue(moduleJson, JKEY_MODULE_NAME);
@@ -776,10 +893,12 @@ bool CPluginSample::IsAlarmEnabled(string moduleName, CAlarmUpdatePluginJson *al
 
 CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdate()
 {
+    return NULL;
 }
 
 CLocalCommandPluginJson *CPluginSample::SetNotifyPluginLocalCommand()
 {
+    return NULL;
 }
 
 bool CPluginSample::AcceptReceivedCommand(cJSON *commandJson)

@@ -6,6 +6,9 @@
 
 #define JKEY_EVENTS                 "events"
 
+/**
+ *  @brief CEventsPluginJson generates a JSON request that conform to the format for notifyPluginEvent API.
+ */
 class PLUGIN_API CEventsPluginJson: public CBasePluginObject {
 public:
     CEventsPluginJson();
