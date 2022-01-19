@@ -6,7 +6,9 @@
 
 #define JKEY_METRICS                "metrics"
 
-
+/**
+ *  @brief CMetricsPluginJson generates a JSON request that conform to the format for notifyPluginMetric API.
+ */
 class PLUGIN_API CMetricsPluginJson: public CBasePluginObject {
 public:
     CMetricsPluginJson();

@@ -12,12 +12,23 @@
 #define JKEY_MESSAGE                    "message"
 
 
+/**
+ * @brief The value set of "action" key of an item in "alarms" array in notifyPluginAlert API
+ * 
+ */
 class Action {
 public:
+    /** When the alarm has been triggered. */
     const static std::string trigger;
+    /** When the alarm has been resolved. */
     const static std::string resolve;
 };
 
+/**
+ * @brief CAlarmUpdatePluginJson parses received notifyPluginAlarmgUpdate API message JSON and get alarm settings data for
+ *  CAlertsPluginJson object, which generates Alerts JSON request, use.
+ * 
+ */
 class PLUGIN_API CAlarmUpdatePluginJson : public CConfigUpdatePluginJson {
 public:
     CAlarmUpdatePluginJson(const char *alarmsJsonString, std::string accessKey);
@@ -28,6 +39,10 @@ public:
 };
 
 
+/**
+ * @brief CAlertsPluginJson generates a JSON request that conform to the format for notifyPluginAlert API.
+ * 
+ */
 class PLUGIN_API CAlertsPluginJson: public CBasePluginObject {
 public:
     CAlertsPluginJson();
