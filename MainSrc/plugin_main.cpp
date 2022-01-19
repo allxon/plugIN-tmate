@@ -16,7 +16,7 @@ using namespace std;
 #define BDM_AGENT "BDM_Agent"
 #define PID_FILE "/var/run/tmatePlugin.pid"
 
-
+extern bool gotSigInt;
 CConnection* connection;
 CConnectionState* currConnState;
 
@@ -184,6 +184,11 @@ CONNECT_WEBSOCKET:
         do {
             agentRet = checkAgentStatus();
             UTL_LOG_INFO("agent psId = %d", agentRet);
+            if (gotSigInt)
+            {
+                UTL_LOG_INFO("exit program.");
+                break;
+            }
             if (agentRet == -1) sleep(CWebSocketClient::ExponentialRetryPause(++retryLaunchingCount));
         } while (agentRet == -1);
         retryLaunchingCount = 0;
@@ -240,19 +245,26 @@ CONNECT_WEBSOCKET:
         {
             if(wsclientobj->WebClientIsAlive() == false) {
                 UTL_LOG_WARN("Web socket connection is broken, retry connection!");
+                currConnState = connection->getCurrentState();
+                if (gotSigInt)
+                {
+                    UTL_LOG_INFO("exit program.");
+                    wsclientobj->SetEndWebSocket(true);
+                }
+                else
+                {
+                    if (currConnState == &CPluginRegistered::getInstance())
+                    {
+                        CPluginRegistered* state = (CPluginRegistered*)currConnState;
+                        state->setNewStateReason(CConnectionState::WEBSOCKET_DISCONNECTED);
+                        connection->toggle();
+                    }
+                }
                 if (wsclientobj)
                 {
                     delete(wsclientobj);
                     wsclientobj = NULL;
                 }
-                currConnState = connection->getCurrentState();
-                if (currConnState == &CPluginRegistered::getInstance())
-                {
-                    CPluginRegistered* state = (CPluginRegistered*)currConnState;
-                    state->setNewStateReason(CConnectionState::WEBSOCKET_DISCONNECTED);
-                    connection->toggle();
-                }
-
                 sleep(CWebSocketClient::ExponentialRetryPause(++retryConnectWebsocket));
                 goto CONNECT_WEBSOCKET;
             }

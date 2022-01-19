@@ -17,7 +17,8 @@ public:
         AGENT_DISABLED,
         AGENT_ALIVE,
         WEBSOCKET_CONNECTED,
-        ERROR
+        ERROR,
+        NONE = -1
     };
 
     void setNewStateReason(Reason reason) { mReason = reason; }
