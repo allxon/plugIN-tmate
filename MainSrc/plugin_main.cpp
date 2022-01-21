@@ -181,6 +181,7 @@ int main(int argc, char **argv)
 CONNECT_WEBSOCKET:
         int agentRet = -1;
         int retryLaunchingCount = 0;
+        // Wait until Agent is working
         do {
             agentRet = checkAgentStatus();
             UTL_LOG_INFO("agent psId = %d", agentRet);
@@ -192,6 +193,7 @@ CONNECT_WEBSOCKET:
             if (agentRet == -1) sleep(CWebSocketClient::ExponentialRetryPause(++retryLaunchingCount));
         } while (agentRet == -1);
         retryLaunchingCount = 0;
+        // Switch to AGENT_ALIVE connection-state if Agent is working, or ERROR if not.
         currConnState = connection->getCurrentState();
         if (currConnState == &CAgentDisabled::getInstance())
         {
@@ -200,7 +202,6 @@ CONNECT_WEBSOCKET:
             connection->toggle();
             if (agentRet <= 0) goto EXIT;
         }
-
         UTL_LOG_INFO("Agent psId: %d", getProcIdByName(BDM_AGENT));
 #ifdef DEBUG
         UTL_LOG_INFO("new wsclientobj");
@@ -208,6 +209,7 @@ CONNECT_WEBSOCKET:
         CWebSocketClient *wsclientobj = new CWebSocketClient();
         wsclientobj->Initial();
 #ifdef TEST_UPDATE
+        // Init plugIN config
         if (argv[1] && strlen(argv[1]) > 0)
         {
             CPluginSampleConfig *config = new CPluginSampleConfig(argv[1]);
@@ -231,35 +233,46 @@ CONNECT_WEBSOCKET:
 #ifdef DEBUG
         UTL_LOG_INFO("start work, update... threads.");
 #endif
+        // Start WebSocketClient connection to Agent thread, update, data and commandAcks threads.
         wsclientobj->StartWebClient();
         do {
             // UTL_LOG_INFO("wait for wsclientobj alive...");
+            // Wait until the WebSocketClient connection to Agent is finished to build.
             sleep(10);
-        } while(wsclientobj->WebClientIsAlive() == false && wsclientobj->GetException().compare("invalid state") != 0);
+        } while(!wsclientobj->IsWebClientWorking() && wsclientobj->GetException().compare("invalid state") != 0);
 #ifdef DEBUG
-        if (wsclientobj->WebClientIsAlive()) UTL_LOG_INFO("wsclientobj is alive.");
+        if (wsclientobj->IsWebClientWorking()) UTL_LOG_INFO("wsclientobj is alive.");
         else UTL_LOG_INFO(wsclientobj->GetException().c_str());
 #endif
 
         while (wsclientobj && !wsclientobj->IsEndWebSocket())
         {
-            if(wsclientobj->WebClientIsAlive() == false) {
+            // Leave this while loop after received ctrl-c signal
+            if (gotSigInt)
+            {
+                UTL_LOG_INFO("exit program.");
+                wsclientobj->SetEndWebSocket(true);
+            }
+
+            if(wsclientobj->IsWebClientWorking())
+            {
+// #ifdef DEBUG
+//                 UTL_LOG_INFO("IsWebClientWorking: %d", wsclientobj->IsWebClientWorking());
+// #endif
+                sleep(10);
+            }
+            else
+            {
                 UTL_LOG_WARN("Web socket connection is broken, retry connection!");
+                // Switch to WEBSOCKET_DISCONNECTED connection-state
                 currConnState = connection->getCurrentState();
-                if (gotSigInt)
+                if (currConnState == &CPluginRegistered::getInstance())
                 {
-                    UTL_LOG_INFO("exit program.");
-                    wsclientobj->SetEndWebSocket(true);
+                    CPluginRegistered* state = (CPluginRegistered*)currConnState;
+                    state->setNewStateReason(CConnectionState::WEBSOCKET_DISCONNECTED);
+                    connection->toggle();
                 }
-                else
-                {
-                    if (currConnState == &CPluginRegistered::getInstance())
-                    {
-                        CPluginRegistered* state = (CPluginRegistered*)currConnState;
-                        state->setNewStateReason(CConnectionState::WEBSOCKET_DISCONNECTED);
-                        connection->toggle();
-                    }
-                }
+                // Re-create WebSocketClient object for connection to Agent
                 if (wsclientobj)
                 {
                     delete(wsclientobj);
@@ -268,18 +281,12 @@ CONNECT_WEBSOCKET:
                 sleep(CWebSocketClient::ExponentialRetryPause(++retryConnectWebsocket));
                 goto CONNECT_WEBSOCKET;
             }
-            else
-            {
-// #ifdef DEBUG
-//                 UTL_LOG_INFO("WebClientIsAlive: %d", wsclientobj->WebClientIsAlive());
-// #endif
-                sleep(10);
-            }
         }
 
         UTLMutex_Destroy(&mutex);
         UTLCond_Destroy(&maincond);
 
+        // Delete WebSocketClient object after received ctrl-c signal.
         if (wsclientobj)
         {
             websocketpp::lib::error_code ec;
@@ -293,9 +300,9 @@ CONNECT_WEBSOCKET:
                 sleep(5);
                 if (wsclientobj->GetThreadHandle() > -1 && wsclientobj->GetUpdateThreadHandle() > -1 &&
                     wsclientobj->GetCommandThreadHandle() > -1 && wsclientobj-> GetDateThreadHandle() > -1 &&
-                    wsclientobj->WebClientIsAlive())
+                    wsclientobj->IsWebClientWorking())
                 {
-                    UTL_LOG_INFO("%d, %ld, %ld, %ld, %ld", wsclientobj->WebClientIsAlive(), wsclientobj->GetThreadHandle(),
+                    UTL_LOG_INFO("%d, %ld, %ld, %ld, %ld", wsclientobj->IsWebClientWorking(), wsclientobj->GetThreadHandle(),
                     wsclientobj->GetUpdateThreadHandle(), wsclientobj->GetCommandThreadHandle(), wsclientobj->GetDateThreadHandle());
                     sleep(1);
                 }

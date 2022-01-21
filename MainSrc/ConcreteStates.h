@@ -107,6 +107,20 @@ private:
     CPluginRegistered& operator=(const CPluginRegistered& other);
 };
 
+class CResendPlugin : public CConnectionState
+{
+public:
+    void enter(CConnection* connection);
+    void toggle(CConnection* connection);
+    void exit(CConnection* connection);
+    static CConnectionState& getInstance();
+
+private:
+    CResendPlugin() { mReason = CResendPlugin::NONE;/*UTL_LOG_INFO("CResendPlugin()");*/ }
+    CResendPlugin(const CResendPlugin& other);
+    CResendPlugin& operator=(const CResendPlugin& other);
+};
+
 class CServerOffline : public CConnectionState
 {
 public:

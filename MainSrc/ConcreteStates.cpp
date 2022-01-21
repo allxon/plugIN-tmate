@@ -161,7 +161,6 @@ void CDeviceOffline::toggle(CConnection* connection)
             break;
 
         default:
-            // if (mRetryTimes > 0) sleep(10);
             connection->setState(CWebsocketConnected::getInstance());
     }
 }
@@ -196,8 +195,7 @@ void CWebsocketDisconnected::toggle(CConnection* connection)
             break;
 
         default:
-            /*if (mRetryTimes < 60) */connection->setState(CAgentAlive::getInstance());
-            // else connection->setState(CExit::getInstance());
+            connection->setState(CAgentAlive::getInstance());
     }
 }
 
@@ -242,6 +240,9 @@ void CPluginRegistered::toggle(CConnection* connection)
             connection->setState(CAgentDisabled::getInstance());
             break;
 
+        case RESEND_PLUGIN:
+            connection->setState(CWebsocketConnected::getInstance());
+
         case ERROR:
             break;
     }
@@ -261,6 +262,41 @@ CConnectionState& CPluginRegistered::getInstance()
 }
 
 /**
+ * ResendPlugin state of plugin connections
+ */
+void CResendPlugin::enter(CConnection* connection)
+{
+    UTL_LOG_INFO("enter of %s", typeid(this).name());
+}
+
+void CResendPlugin::toggle(CConnection* connection)
+{
+    UTL_LOG_INFO("toggle of %s", typeid(this).name());
+    switch (mReason)
+    {
+        case PLUGIN_REGISTERED:
+            connection->setState(CPluginRegistered::getInstance());
+            break;
+
+        case ERROR:
+            break;
+    }
+    mReason = RESEND_PLUGIN;
+}
+
+void CResendPlugin::exit(CConnection* connection)
+{
+    UTL_LOG_INFO("exit of %s", typeid(this).name());
+}
+
+CConnectionState& CResendPlugin::getInstance()
+{
+    static CResendPlugin singleton;
+    // UTL_LOG_INFO("Instance of state: %s", typeid(singleton).name());
+    return singleton;
+}
+
+/**
  * CServerOffline state of plugin connections
  */
 void CServerOffline::enter(CConnection* connection)
@@ -273,7 +309,7 @@ void CServerOffline::toggle(CConnection* connection)
     UTL_LOG_INFO("toggle of %s", typeid(this).name());
     if (mLastState == &CPluginRegistered::getInstance())
     {
-        connection->setState(CPluginRegistered::getInstance());
+        connection->setState(CWebsocketConnected::getInstance());
     }
     else if (mLastState == &CWebsocketConnected::getInstance())
     {
