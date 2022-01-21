@@ -123,16 +123,16 @@ static UTLTHREAD_FN_DECL ClientWorkThread(void* arg)
         // Start the ASIO io_service run loop
         ptr->m_client.run();
     } catch(const exception & e) {
-        ptr->m_threadstart = false;
-        ptr->m_exception = e.what();
+        ptr->SetWebClientWork(false);
+        ptr->SetException(e.what());
         if (ptr->GetSamplePlugin()) ptr->GetSamplePlugin()->GetUpdateData()->GetNotifyPluginUpdate()->SetUpdated(false);
         UTL_LOG_ERROR("Exception: %s\n", e.what());
-        // UTL_LOG_INFO("is websocket alive: %d", ptr->WebClientIsAlive()); 
+        // UTL_LOG_INFO("is websocket alive: %d", ptr->IsWebClientWorking()); 
     } catch(websocketpp::lib::error_code e) {
-        ptr->m_threadstart = false;
+        ptr->SetWebClientWork(false);
         UTL_LOG_ERROR("Exception: %s\n", e.message().c_str());
     } catch(...) {
-        ptr->m_threadstart = false;
+        ptr->SetWebClientWork(false);
         UTL_LOG_ERROR("Other exception\n");
     }
     ptr->UpdateThreadHandle();
@@ -211,7 +211,7 @@ void CWebSocketClient::On_message(void* c, websocketpp::connection_hdl hdl, WebC
                     connection->toggle();
                 }
 #ifdef TEST_UPDATE
-                UTL_LOG_INFO("Resend NotifyPluginUpdate()");
+                UTL_LOG_INFO("Set waiting for send notifyPluginUpdate");
                 if (ptr->GetSamplePlugin()) ptr->GetSamplePlugin()->GetUpdateData()->GetNotifyPluginUpdate()->SetUpdated(false);
 #endif
             }
@@ -373,17 +373,17 @@ static UTLTHREAD_FN_DECL NotifyUpdateThread(void* arg)
         CUpdatePluginJson *updatePluginObj = ptr->GetSamplePlugin()->GetUpdateData()->GetNotifyPluginUpdate();
         // UTL_LOG_INFO("plugin update obj: %p", updatePluginObj);
         int retry = 0;
-        while(ptr->WebClientIsAlive())
+        while(ptr->IsWebClientWorking())
         {
             sleep(0);
-            // UTL_LOG_INFO("1. retry %d, m_wsConnectionOpened = %d", retry, ptr->m_wsConnectionOpened);
-            if (ptr->m_wsConnectionOpened)
+            // UTL_LOG_INFO("1. retry %d, is connection opened? %d", retry, ptr->IsConnectionOpened());
+            if (ptr->IsConnectionOpened())
             {
                 currConnState = connection->getCurrentState();
-                // UTL_LOG_INFO("connectionState: %d", currConnState->mReason);
-                if (currConnState == &CWebsocketConnected::getInstance())
+                // UTL_LOG_INFO("connectionState: %d", currConnState->getCurrentStateReason());
+                if (currConnState == &CWebsocketConnected::getInstance() || currConnState == &CResendPlugin::getInstance())
                 {
-                    UTL_LOG_INFO("WebsocketConnected");
+                    UTL_LOG_INFO("WebsocketConnected | ResendPlugin");
                     ptr->SendNotifyPluginUpdate();
 #ifdef TEST_STATES_METRICS_EVENTS
                     if (updatePluginObj && updatePluginObj->IsUpdated())
@@ -425,7 +425,7 @@ static UTLTHREAD_FN_DECL NotifyCommandThread(void* arg)
     if (ptr && plugin) {
         CUpdatePluginJson *updatePluginObj = plugin->GetUpdateData()->GetNotifyPluginUpdate();
         UTL_LOG_INFO("NotifyCommandThread running");
-        while (ptr->WebClientIsAlive()) {
+        while (ptr->IsWebClientWorking()) {
             sleep(0); //For release CPU resource not be blocked by this thread.
             if (updatePluginObj->IsUpdated()) {
                 if (needSendCmdAcks)
@@ -454,7 +454,7 @@ void CWebSocketClient::SendNotifyPluginUpdate()
     CUpdatePluginJson *updateJsonObject = GetSamplePlugin()->GetUpdateData()->GetNotifyPluginUpdate();
     if (updateJsonObject != NULL) {
         currConnState = connection->getCurrentState();
-        if (currConnState == &CWebsocketConnected::getInstance())
+        if (currConnState == &CWebsocketConnected::getInstance() || currConnState == &CResendPlugin::getInstance())
         {
             bool minify = GetSamplePlugin()->minify;
             cJSON *updateJson = updateJsonObject->RenewUpdateJsonObject(minify);
@@ -503,7 +503,7 @@ static UTLTHREAD_FN_DECL NotifyDataThread(void* arg)
         CUpdatePluginJson *updatePluginObj = plugin->GetUpdateData()->GetNotifyPluginUpdate();
         UTL_LOG_INFO("NotifyDataThread running");
         int stateCount = 0;
-        while (ptr->WebClientIsAlive()) {
+        while (ptr->IsWebClientWorking()) {
             sleep(0); //For release CPU resource not be blocked by this thread.
             if (updatePluginObj->IsUpdated())
             {
@@ -531,14 +531,17 @@ static UTLTHREAD_FN_DECL NotifyDataThread(void* arg)
                 if (gotSigInt) // Update the latest states status and exit the program.
                 {
                     SendNotifyPluginStates(ptr, fileChanges);
-                    UTL_LOG_INFO("exit program.");
-                    ptr->SetEndWebSocket(true);
                 }
                 else if (needSendStates) // Send notify for changed states.
                 {
                     SendNotifyPluginStates(ptr, fileChanges);
                     needSendStates = false;
                 }
+            }
+            if (gotSigInt)
+            {
+                UTL_LOG_INFO("going to exit program...");
+                ptr->SetEndWebSocket(true);
             }
             sleep(3);
             stateCount++;

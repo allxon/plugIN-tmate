@@ -483,7 +483,6 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                                         cJSON *paramRowJson;
                                         cJSON_ArrayForEach(paramRowJson, paramJson)
                                         {
-                                            UTL_LOG_INFO("paramRowJson: %s", cJSON_Print(paramRowJson));
                                             lcmdRowParams.push_back(GetUpdateCommandParam(paramRowJson));
                                         }
                                     }
@@ -592,7 +591,6 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                                         cJSON *paramRowJson;
                                         cJSON_ArrayForEach(paramRowJson, paramJson)
                                         {
-                                            UTL_LOG_INFO("paramRowJson: %s", cJSON_Print(paramRowJson));
                                             lalarmRowParams.push_back(GetUpdateAlarmParam(paramRowJson));
                                         }
                                     }
@@ -663,7 +661,6 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                                 cJSON *paramJson;
                                 cJSON_ArrayForEach(paramJson, paramsJson)
                                 {
-                                    UTL_LOG_INFO("%s", cJSON_Print(paramJson));
                                     list<CUpdateConfigParam *> lconfigRowParams;
                                     is2DArray = cJSON_IsArray(paramJson);
                                     if (is2DArray)
@@ -672,7 +669,6 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                                         cJSON *paramRowJson;
                                         cJSON_ArrayForEach(paramRowJson, paramJson)
                                         {
-                                            UTL_LOG_INFO("paramRowJson: %s", cJSON_Print(paramRowJson));
                                             lconfigRowParams.push_back(GetUpdateConfigParam(paramRowJson));
                                         }
                                     }
