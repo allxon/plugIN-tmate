@@ -12,11 +12,6 @@ GCC_GXX_WARNINGS = -Wall -Wno-error -Wno-packed -Wpointer-arith -Wredundant-decl
 CFLAGS = -Os -DDEBUG
 LDFLAGS = -lm
 
-ifeq ($(ENV),x86)
-	APP_GUID = 286b0652-c5ef-46c0-aa8c-7b617bbf6ab9
-else ifeq ($(ENV),jetson)
-	APP_GUID = 3ff0bf0a-17a0-47c0-b9f6-229191393182
-endif
 TARGET = plugIN-tmate
 UTIL_FOLDER = $(PWD)/Util
 MAIN_FOLDER = $(PWD)/MainSrc
@@ -27,6 +22,8 @@ OBJ_PATH = $(ENV_FOLDER)/objs
 OUTPUTPATH = $(ENV_FOLDER)/output
 LIB_FOLDER = $(ENV_FOLDER)/lib
 CONFIG_FOLDER = $(ENV_FOLDER)/config
+APPGUID_FILE := $(CONFIG_FOLDER)/appGUID
+APP_GUID := $(shell cat ${APPGUID_FILE})
 INSTALL_FOLDER = $(ENV_FOLDER)/install
 BIN_FOLDER = /opt/allxon/plugIN/$(APP_GUID)
 TMP_PKG_FOLDER = ./$(TARGET)
@@ -99,7 +96,7 @@ toolchainbuild: toolchaininit init compile
 
 toolchaininit:
 	$(eval ENV = jetson)
-	$(eval APP_GUID = 3ff0bf0a-17a0-47c0-b9f6-229191393182)
+	$(eval APP_GUID  := $(shell cat $(PWD)/$(ENV)/config/appGUID))
 	$(eval CC := $(TOOLCHAIN_CC))
 	$(eval CINC := $(CINC) -I$(TOOLCHAIN)/include)
 	$(eval CLIB := $(CLIB) -lstdc++)
