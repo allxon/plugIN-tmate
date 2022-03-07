@@ -2,7 +2,7 @@ QUIET = @
 ECHO  = echo
 RM = rm -rf
 
-ENV = x86
+# ENV = x86
 
 TOOLCHAIN=/build/toolchain/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu
 TOOLCHAIN_CC=$(TOOLCHAIN)/bin/aarch64-linux-gnu-gcc
