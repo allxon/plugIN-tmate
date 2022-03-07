@@ -2,7 +2,7 @@ QUIET = @
 ECHO  = echo
 RM = rm -rf
 
-#ENV = x86
+ENV = x86
 
 TOOLCHAIN=/build/toolchain/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu
 TOOLCHAIN_CC=$(TOOLCHAIN)/bin/aarch64-linux-gnu-gcc
@@ -110,8 +110,8 @@ endif
 	$(QUIET)cp -r $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(TMP_PKG_FOLDER)/$(APP_GUID)/
 	$(QUIET)cp $(INSTALL_FOLDER)/uninstall_plugIN.sh $(TMP_PKG_FOLDER)/$(APP_GUID)/
 	$(QUIET)cp $(INSTALL_FOLDER)/install_plugIN.sh $(TMP_PKG_FOLDER)/
-	$(QUIET)zip -r $(OUTPUTPATH)/$(TARGET) $(TMP_PKG_FOLDER)
+	$(QUIET)cd $(TMP_PKG_FOLDER); tar -czf $(OUTPUTPATH)/$(TARGET).tar.gz .
 	$(QUIET)rm -rf $(TMP_PKG_FOLDER)
-	$(QUIET)$(ECHO) "The $(TARGET) app related files are packaged to ./output/$(TARGET).zip"
+	$(QUIET)$(ECHO) "The $(TARGET) app related files are packaged to ./output/$(TARGET).tar.gz"
 
 rebuild: clean default
