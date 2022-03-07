@@ -1,0 +1,3 @@
+[submodule "linux-plugin-sdk"]
+	path = linux-plugin-sdk
+	url = git@gitlab.com:allxon.com/plugin/linux-plugin-sdk.git
