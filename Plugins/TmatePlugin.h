@@ -6,10 +6,6 @@
 #include "../PluginSDK/AlertsPluginJson.h"
 
 #define SAMPLE_TMATE_PLUGIN      "TmatePlugin"
-#define PLUGINS_PATH                "/opt/allxon/plugIN/"
-#define SCRIPTS_STATES_PATH         "scripts/states/"
-#define SCRIPTS_COMMANDS_PATH       "scripts/commands/"
-#define CONFING_PATH                "config/"
 #define PLUGIN_UPDATE_CONFIG        "tmatePluginUpdate.json"
 
 

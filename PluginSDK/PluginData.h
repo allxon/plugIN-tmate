@@ -13,7 +13,7 @@
  * @brief CUpdateInfo is a base class for plugIN info types data. (Properties, States, Metrics and Events.) To store JSON properties
  *  for properties, states, metrics and events.
  */
-class CUpdateInfo {
+class PLUGIN_API CUpdateInfo {
 public:
     CUpdateInfo();
     CUpdateInfo(std::string name, std::string displayCategory, std::string displayName, std::string description);
@@ -233,7 +233,7 @@ public:
  * @brief CUpdateConfig is a class to store a plugin config data in a module.
  * 
  */
-class CUpdateConfig : public CUpdateInfo {
+class PLUGIN_API CUpdateConfig : public CUpdateInfo {
 public:
     CUpdateConfig();
     CUpdateConfig(std::string name, std::string displayCategory, std::string displayName, std::string description,

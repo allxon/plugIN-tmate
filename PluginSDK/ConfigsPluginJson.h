@@ -13,7 +13,7 @@
 /**
  *  @brief CConfigUpdatePluginJson parses received notifyPluginConfigUpdate API message JSON and get configs data for devices use.
  */
-class CConfigUpdatePluginJson: public CPluginUtil {
+class PLUGIN_API CConfigUpdatePluginJson: public CPluginUtil {
 public:
     CConfigUpdatePluginJson(const char *configsJsonString, std::string accessKey);
     ~CConfigUpdatePluginJson();

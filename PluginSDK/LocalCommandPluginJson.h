@@ -13,7 +13,7 @@
  * @brief The source of a command request.
  * 
  */
-class CommandSource {
+class PLUGIN_API CommandSource {
 public:
     /** Value of commandSource. A command request from a local client app. */
     const static std::string local;

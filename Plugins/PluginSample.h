@@ -6,6 +6,13 @@
 #include "../PluginSDK/AlertsPluginJson.h"
 #include "../PluginSDK/ConfigsPluginJson.h"
 
+#define PLUGINS_PATH                "/opt/allxon/plugIN/"
+#define SCRIPTS_PATH                "scripts/"
+#define SCRIPTS_PROPERTIES_PATH     "scripts/properties/"
+#define SCRIPTS_STATES_PATH         "scripts/states/"
+#define SCRIPTS_COMMANDS_PATH       "scripts/commands/"
+#define CONFING_PATH                "config/"
+#define APP_GUID_FILE               "appGUID"
 
 typedef enum
 {

@@ -47,7 +47,7 @@ public:
 /**
  *  @brief AppType contains the defined plugIN app type.
 **/
-class AppType {
+class PLUGIN_API AppType {
 public:
     /** Value for in-band plugIN. */
     const static std::string ib;
@@ -97,7 +97,7 @@ public:
 /**
  *  @brief DataType contains the defined types of data or config in a plugIN module.
  */
-class ValueEncoding {
+class PLUGIN_API ValueEncoding {
 public:
     /** Non-coding string. */
     const static std::string none;
