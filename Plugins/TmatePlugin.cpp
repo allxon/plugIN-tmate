@@ -6,8 +6,6 @@
 
 using namespace std;
 
-#define SCRIPT_EXT          ".sh"
-#define SCRIPT_OUTPUT_EXT   ".output"
 
 const bitset<4> StateUpdated::status = bitset<4>("0001");
 const bitset<4> StateUpdated::version = bitset<4>("0010");
