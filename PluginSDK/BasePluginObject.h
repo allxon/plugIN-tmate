@@ -64,7 +64,7 @@ public:
  * @brief Allxon DMS Agent API to plugIN.
  * 
  */
-class AgentPluginApi {
+class PLUGIN_API AgentPluginApi {
 public:
     /** The Allxon DMS Agent API for plugIN use. To register the plugIN data display and control functions, and update properties
      *  as well. This API has to be invoked once the WebSocket connection between Agent and plugIN is established.
@@ -114,7 +114,7 @@ public:
  * @brief Message payload received from Allxon DMS Agent.
  * 
  */
-class MessageType {
+class PLUGIN_API MessageType {
 public:
     /** The received message is sent by notifyPluginCommand. */
     const static std::string api_notifyPluginCommand;
@@ -138,7 +138,7 @@ public:
  * @brief The regular expressions for various data formats to check.
  * 
  */
-class StringFormatter {
+class PLUGIN_API StringFormatter {
 public:
     /** Regular expression to check if matched the format of key "name". */
     const static std::string nameFormat;

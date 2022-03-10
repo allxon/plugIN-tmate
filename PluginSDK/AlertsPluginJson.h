@@ -16,7 +16,7 @@
  * @brief The value set of "action" key of an item in "alarms" array in notifyPluginAlert API
  * 
  */
-class Action {
+class PLUGIN_API Action {
 public:
     /** When the alarm has been triggered. */
     const static std::string trigger;

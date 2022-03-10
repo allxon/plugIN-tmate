@@ -83,6 +83,14 @@ CLocalCommandSampleConfig::~CLocalCommandSampleConfig()
 
 void CLocalCommandSampleConfig::GetSampleConfig(const char *configFile)
 {
+    // Read appGUID file to get appGUID
+    string appGUIDFile = string(CONFING_PATH).append(APP_GUID_FILE);
+    std::ifstream t(appGUIDFile);
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    appGUID = buffer.str();
+
+    // Read config file to get other settings of this plugIN
     UTL_LOG_INFO("configFile: %s", configFile);
     if (configFile && strlen(configFile) >= 0)
     {
@@ -93,8 +101,8 @@ void CLocalCommandSampleConfig::GetSampleConfig(const char *configFile)
                 cJSON *apiVersionItem = cJSON_GetObjectItem(config, JKEY_CNFG_APIVERSION);
                 if (apiVersionItem) apiVersion = string(apiVersionItem->valuestring);
 
-                cJSON *appGUIDItem = cJSON_GetObjectItem(config, JKEY_CNFG_APPGUID);
-                if (appGUIDItem) appGUID = string(appGUIDItem->valuestring);
+                // cJSON *appGUIDItem = cJSON_GetObjectItem(config, JKEY_CNFG_APPGUID);
+                // if (appGUIDItem) appGUID = string(appGUIDItem->valuestring);
 
                 cJSON *accessKeyItem = cJSON_GetObjectItem(config, JKEY_CNFG_ACCESSKEY);
                 if (accessKeyItem) accessKey = string(accessKeyItem->valuestring);
@@ -260,8 +268,10 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
             string appGuid = CPluginUtil::GetJSONStringFieldValue(updateParam, JKEY_APP_GUID);
             if (appGuid.compare(appGUID) != 0)
             {
-                UTL_LOG_WARN("The appGUID isn't consistent with the one set in the plugin config file. Please check its correction.");
-                return NULL;
+                // UTL_LOG_WARN("The appGUID isn't consistent with the one set in the plugin config file. Please check its correction.");
+                // return NULL;
+                cJSON *appGUIDJson = cJSON_GetObjectItem(updateParam, JKEY_APP_GUID);
+                cJSON_SetValuestring(appGUIDJson, appGUID.c_str());
             }
             cJSON *modulesJson = cJSON_GetObjectItem(updateParam, JKEY_MODULES);
             if (!cJSON_IsArray(modulesJson))
@@ -502,31 +512,45 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                             map<string, list<string> > displayOnProperty;
                             if (displayOnPropertyJson)
                             {
-                                if (cJSON_IsArray(displayOnPropertyJson))
+                                UTL_LOG_INFO("displayOnPropertyJson: %s", cJSON_PrintUnformatted(displayOnPropertyJson));
+                                cJSON *property = displayOnPropertyJson->child;
+                                while (property)
                                 {
-                                    cJSON *property;
-                                    cJSON_ArrayForEach(property, displayOnPropertyJson)
+                                    UTL_LOG_INFO("property: %s", cJSON_PrintUnformatted(property));
+                                    if (cJSON_IsArray(property))
                                     {
-                                        cJSON *element;
-                                        cJSON_ArrayForEach(element, property)
+                                        UTL_LOG_INFO("property is array");
+                                        list<string> propValues;
+                                        cJSON *propValueJson;
+                                        cJSON_ArrayForEach(propValueJson, property)
                                         {
-                                            list<string> propValues;
-                                            cJSON *propValuesJson = cJSON_GetObjectItem(element, element->string);
-                                            if (cJSON_IsArray(propValuesJson))
-                                            {
-                                                cJSON *propValueJson;
-                                                cJSON_ArrayForEach(propValueJson, propValuesJson)
-                                                {
-                                                    string propValue = cJSON_GetStringValue(propValueJson);
-                                                    if (!propValue.empty()) propValues.push_back(propValue);
-                                                }
-                                            }
-                                            if (!propValues.empty()) displayOnProperty.insert(pair<string, list<string> >(string(element->string), propValues));
+                                            string propValue = cJSON_GetStringValue(propValueJson);
+                                            UTL_LOG_INFO("property value: %s", propValue.c_str());
+                                            if (!propValue.empty()) propValues.push_back(propValue);
                                         }
+                                        if (!propValues.empty())
+                                        {
+                                            string propKey(property->string);
+                                            UTL_LOG_INFO("property name: %s", propKey.c_str());
+                                            displayOnProperty.insert(pair<string, list<string> >(propKey, propValues));
+                                        }
+                                        // UTL_LOG_INFO("property name: %s", property->string);
+                                    }
+                                    property = property->next;
+                                }
+#ifdef DEBUG
+                                for (auto it = displayOnProperty.begin(); it != displayOnProperty.end(); it++)
+                                {
+                                    string mapKey = it->first;
+                                    UTL_LOG_INFO("key: %s", mapKey.c_str());
+                                    list<string> mapValue = it->second;
+                                    for (auto itL = mapValue.begin(); itL != mapValue.end(); itL++)
+                                    {
+                                        UTL_LOG_INFO("value: %s", (*itL).c_str());
                                     }
                                 }
+#endif
                             }
-                            //lCommands.push_back(new CUpdateCommand(name, displayCategory, displayName, description, type, lcmdParams, displayOnProperty));
                             if (is2DArray)
                             {
                                 // list<list<CUpdateCommandParam *> >::iterator ita;
@@ -585,7 +609,7 @@ CUpdatePluginJson *CPluginSample::SetNotifyPluginUpdateFromFile(string jsonFile)
                                 {
                                     list<CUpdateAlarmParam *> lalarmRowParams;
                                     is2DArray = cJSON_IsArray(paramJson);
-                                    UTL_LOG_INFO("is2DArray: %d", is2DArray);
+                                    // UTL_LOG_INFO("is2DArray: %d", is2DArray);
                                     if (is2DArray)
                                     {
                                         cJSON *paramRowJson;
