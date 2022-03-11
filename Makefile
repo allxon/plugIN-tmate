@@ -51,7 +51,7 @@ ALLOBJS = $(wildcard $(OBJ_PATH)/*.o)
 
 BUILD_INFO_INCLUDE_FILE = $(PWD)/Util/include/build_info.h
 BUILD_DATE := $(shell date '+%Y%m%d-%H%M%S')
-BUILD_VERSION := '1.07.2000'
+BUILD_VERSION := '1.00.2003'
 
 
 default:init compile
