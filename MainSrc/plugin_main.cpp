@@ -119,12 +119,9 @@ int main(int argc, char **argv)
 
 CONNECT_WEBSOCKET:
         currConnState = connection->getCurrentState();
-        if (currConnState == &CAgentDisabled::getInstance())
-        {
-            CAgentDisabled* state = (CAgentDisabled*)currConnState;
-            state->setNewStateReason(CAgentDisabled::AGENT_ALIVE);
-            connection->toggle();
-        }
+        CAgentDisabled* state = (CAgentDisabled*)currConnState;
+        state->setNewStateReason(CAgentDisabled::AGENT_ALIVE);
+        connection->toggle();
 #ifdef DEBUG
         UTL_LOG_INFO("new wsclientobj");
 #endif
