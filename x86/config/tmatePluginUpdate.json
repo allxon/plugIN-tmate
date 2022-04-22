@@ -3,7 +3,7 @@
   "appName": "AllxonTmatePlugin",
   "displayName": "Tmate plugIN",
   "type": "ib",
-  "version": "1.00.2003",
+  "version": "1.00.2004",
   "startCommand": "/opt/allxon/plugIN/286b0652-c5ef-46c0-aa8c-7b617bbf6ab9/scripts/startPlugin.sh",
   "stopCommand": "/opt/allxon/plugIN/286b0652-c5ef-46c0-aa8c-7b617bbf6ab9/scripts/stopPlugin.sh",
   "modules": [
