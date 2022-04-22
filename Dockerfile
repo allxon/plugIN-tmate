@@ -28,4 +28,4 @@ RUN /usr/bin/make package
 FROM scratch AS output-stage
 ARG ARCH
 ENV ENV=${ARCH}
-COPY --from=build-stage /app/${ARCH}/output/plugIN-tmate.tar.gz / 
+COPY --from=build-stage /app/${ARCH}/output/*.tar.gz / 
