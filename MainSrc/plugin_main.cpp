@@ -67,67 +67,6 @@ string getCurrentDate()
     return string(buffer);
 }
 
-int getProcIdByName(string procName)
-{
-    int pid = -1;
-
-    // Open the /proc directory
-    DIR *dp = opendir("/proc");
-    if (dp != NULL)
-    {
-        // Enumerate all entries in directory until process found
-        struct dirent *dirp;
-        while (pid < 0 && (dirp = readdir(dp)))
-        {
-            // Skip non-numeric entries
-            int id = atoi(dirp->d_name);
-            if (id > 0)
-            {
-                // Read contents of virtual /proc/{pid}/cmdline file
-                string cmdPath = string("/proc/") + dirp->d_name + "/cmdline";
-                ifstream cmdFile(cmdPath.c_str());
-                string cmdLine;
-                getline(cmdFile, cmdLine);
-                if (!cmdLine.empty())
-                {
-                    // Keep first cmdline item which contains the program path
-                    size_t pos = cmdLine.find('\0');
-                    if (pos != string::npos) cmdLine = cmdLine.substr(0, pos);
-                    // Keep program name only, removing the path
-                    pos = cmdLine.rfind('/');
-                    if (pos != string::npos) cmdLine = cmdLine.substr(pos + 1);
-                    // Compare against requested process name
-                    if (procName == cmdLine) pid = id;
-                }
-            }
-        }
-    }
-    closedir(dp);
-
-    return pid;
-}
-
-
-int checkAgentStatus()
-{
-    int psId = getProcIdByName(BDM_AGENT);
-    UTL_LOG_INFO("1. Agent psId: %d", psId);
-    currConnState = connection->getCurrentState();
-    if (currConnState == &CInit::getInstance())
-    {
-        CInit* state = (CInit*)currConnState;
-        state->setNewStateReason(psId > 0? CInit::AGENT_ALIVE : CInit::AGENT_DISABLED);
-        connection->toggle();
-    }
-    else if (currConnState == &CWebsocketDisconnected::getInstance())
-    {
-        CWebsocketDisconnected* state = (CWebsocketDisconnected*)currConnState;
-        if (psId <= 0) state->setNewStateReason(psId > 0? CInit::AGENT_ALIVE : CInit::AGENT_DISABLED);
-        connection->toggle();
-    }
-    return psId;
-}
-
 int main(int argc, char **argv)
 {
     Log start; // start Logging
@@ -179,30 +118,10 @@ int main(int argc, char **argv)
         }
 
 CONNECT_WEBSOCKET:
-        int agentRet = -1;
-        int retryLaunchingCount = 0;
-        // Wait until Agent is working
-        do {
-            agentRet = checkAgentStatus();
-            UTL_LOG_INFO("agent psId = %d", agentRet);
-            if (gotSigInt)
-            {
-                UTL_LOG_INFO("exit program.");
-                break;
-            }
-            if (agentRet == -1) sleep(CWebSocketClient::ExponentialRetryPause(++retryLaunchingCount));
-        } while (agentRet == -1);
-        retryLaunchingCount = 0;
-        // Switch to AGENT_ALIVE connection-state if Agent is working, or ERROR if not.
         currConnState = connection->getCurrentState();
-        if (currConnState == &CAgentDisabled::getInstance())
-        {
-            CAgentDisabled* state = (CAgentDisabled*)currConnState;
-            state->setNewStateReason(agentRet > 0? CAgentDisabled::AGENT_ALIVE : CConnectionState::ERROR);
-            connection->toggle();
-            if (agentRet <= 0) goto EXIT;
-        }
-        UTL_LOG_INFO("Agent psId: %d", getProcIdByName(BDM_AGENT));
+        CAgentDisabled* state = (CAgentDisabled*)currConnState;
+        state->setNewStateReason(CAgentDisabled::AGENT_ALIVE);
+        connection->toggle();
 #ifdef DEBUG
         UTL_LOG_INFO("new wsclientobj");
 #endif

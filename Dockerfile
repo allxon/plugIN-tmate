@@ -1,42 +1,31 @@
 ARG ARCH=${ARCH:-x86}
 
-FROM ubuntu:18.04 AS x86
+FROM --platform=linux/amd64 ubuntu:20.04 AS x86
+FROM --platform=linux/arm64 nvcr.io/nvidia/l4t-base:r32.6.1 AS jetson
+
+FROM ${ARCH} AS install-dependency
+ARG ARCH
+ENV ENV=${ARCH}
 RUN apt-get update && apt-get install -y \
 	make \
 	g++ \
-	libcurl4-openssl-dev \
-	libboost1.65-dev \
 	libssl-dev \
-	git \
+	libboost-chrono-dev \
+	libboost-random-dev \
+	libboost-system-dev \
 	&& rm -rf /var/lib/apt/lists/*
-ARG ARCH
-ENV ENV=${ARCH:-x86}
-WORKDIR /build/source
-COPY . /build/source
-WORKDIR /build/source/linux-plugin-sdk
-RUN /usr/bin/make
-RUN /bin/bash -c 'cp ${ENV}/release_static/libadmplugin.a ../${ENV}/lib/'
-WORKDIR /build/source
-RUN /usr/bin/make
 
-FROM 480737503464.dkr.ecr.ap-northeast-1.amazonaws.com/allxon/toolchain-nvidia:latest AS jetson
-ARG ARCH
-ENV ENV=${ARCH:-jetson}
-WORKDIR /build/source
-COPY . /build/source
-WORKDIR /build/source/linux-plugin-sdk
-RUN /usr/bin/make toolchainbuild 
-RUN /bin/bash -c 'cp ${ENV}/release_static/libadmplugin.a ../${ENV}/lib/'
-WORKDIR /build/source
-RUN /usr/bin/make toolchainbuild 
-
-FROM ${ARCH} AS deploy-stage
+FROM install-dependency AS build-stage
 ARG ARCH
 ENV ENV=${ARCH}
-WORKDIR /build/source
+COPY . /app
+WORKDIR /app/linux-plugin-sdk
+RUN /usr/bin/make 
+WORKDIR /app
+RUN /usr/bin/make
 RUN /usr/bin/make package
 
 FROM scratch AS output-stage
 ARG ARCH
 ENV ENV=${ARCH}
-COPY --from=deploy-stage /build/source/${ENV}/output/* / 	
+COPY --from=build-stage /app/${ARCH}/output/*.tar.gz / 

@@ -110,8 +110,8 @@ endif
 	$(QUIET)cp -r $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(TMP_PKG_FOLDER)/$(APP_GUID)/
 	$(QUIET)cp $(INSTALL_FOLDER)/uninstall_plugIN.sh $(TMP_PKG_FOLDER)/$(APP_GUID)/
 	$(QUIET)cp $(INSTALL_FOLDER)/install_plugIN.sh $(TMP_PKG_FOLDER)/
-	$(QUIET)cd $(TMP_PKG_FOLDER); tar -czf $(OUTPUTPATH)/$(TARGET).tar.gz .
+	$(QUIET)cd $(TMP_PKG_FOLDER); tar -czf $(OUTPUTPATH)/$(APP_GUID).tar.gz .
 	$(QUIET)rm -rf $(TMP_PKG_FOLDER)
-	$(QUIET)$(ECHO) "The $(TARGET) app related files are packaged to ./output/$(TARGET).tar.gz"
+	$(QUIET)$(ECHO) "The $(TARGET) app related files are packaged to .$(OUTPUTPATH)/$(APP_GUID).tar.gz"
 
 rebuild: clean default
