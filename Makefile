@@ -51,7 +51,7 @@ ALLOBJS = $(wildcard $(OBJ_PATH)/*.o)
 
 BUILD_INFO_INCLUDE_FILE = $(PWD)/Util/include/build_info.h
 BUILD_DATE := $(shell date '+%Y%m%d-%H%M%S')
-BUILD_VERSION := '1.00.2003'
+BUILD_VERSION := '1.00.2005'
 
 
 default:init compile
@@ -110,6 +110,7 @@ endif
 	$(QUIET)cp -r $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(TMP_PKG_FOLDER)/$(APP_GUID)/
 	$(QUIET)cp $(INSTALL_FOLDER)/uninstall_plugIN.sh $(TMP_PKG_FOLDER)/$(APP_GUID)/
 	$(QUIET)cp $(INSTALL_FOLDER)/install_plugIN.sh $(TMP_PKG_FOLDER)/
+	$(QUIET)cp $(INSTALL_FOLDER)/plugIN-tmate.service $(TMP_PKG_FOLDER)/
 	$(QUIET)cd $(TMP_PKG_FOLDER); tar -czf $(OUTPUTPATH)/$(APP_GUID).tar.gz .
 	$(QUIET)rm -rf $(TMP_PKG_FOLDER)
 	$(QUIET)$(ECHO) "The $(TARGET) app related files are packaged to .$(OUTPUTPATH)/$(APP_GUID).tar.gz"
