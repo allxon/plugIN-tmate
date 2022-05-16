@@ -3,11 +3,11 @@
   "appName": "AllxonTmatePlugin",
   "displayName": "Tmate plugIN",
   "type": "ib",
-  "version": "1.00.2003",
+  "version": "1.00.2005",
   "modules": [
     {
       "moduleName": "tmateWebConsole",
-      "displayName": "Remote Console",
+      "displayName": "Tmate",
       "properties": [
         {
           "name": "officialSite",
