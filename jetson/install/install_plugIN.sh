@@ -6,24 +6,13 @@ output_file="install_plugIN_$plugin_appguid.output"
 sudo mkdir -p $ALLXON_PLUGIN_DIR
 
 check_for_install() {
-   # If users try to install this plugIN on non-Ubuntu x86 devices, then it will be returned
-   if [ -r /etc/os-release ]; then
-        lsb_dist="$(. /etc/os-release && echo "$ID")"
-        if [ ! "$lsb_dist" == "ubuntu" ]; then
-            sudo echo "Not Supported Distribution" > $output_file 2>&1
-            sudo cp $output_file $ALLXON_PLUGIN_DIR/
-            sudo rm $output_file
-            exit 1
-        fi
-   fi
-
-   arch=$(dpkg --print-architecture)
-   if [ ! "$arch" == "amd64" ] && [ ! "$arch" == "i386" ]; then
-        sudo echo "Not Supported Architecture" > $output_file 2>&1
-        sudo cp $output_file $ALLXON_PLUGIN_DIR/
-        sudo rm $output_file
-        exit 1
-   fi
+    # If users try to install this plugIN on non-Jetson devices, then it will be returned
+    if [ ! -f "/etc/nv_tegra_release" ]; then
+    sudo echo "Not Supported" > $output_file 2>&1
+    sudo cp $output_file $ALLXON_PLUGIN_DIR/
+    sudo rm $output_file
+    exit 1
+    fi
 }
 
 install_plugin_files() {
