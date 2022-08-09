@@ -512,8 +512,7 @@ static UTLTHREAD_FN_DECL NotifyDataThread(void* arg)
                 {
                     // Run states' scripts to see if there're changes need to be notified.
                     bitset<4> updateMask;
-                    if (stateCount == 1) updateMask.set();
-                    else updateMask.set().set(1,0);
+                    updateMask.set();
 #ifdef DEBUG
                     UTL_LOG_INFO("updateMask = %s", updateMask.to_string<char,std::string::traits_type,std::string::allocator_type>().c_str());
 #endif
