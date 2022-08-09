@@ -1,0 +1,25 @@
+ARG ARCH=jetson
+FROM --platform=linux/arm64 nvcr.io/nvidia/l4t-base:r32.6.1 AS install-dependency
+RUN apt-get update && apt-get install -y \
+	make \
+	g++ \
+	libssl-dev \
+	libboost-chrono-dev \
+	libboost-random-dev \
+	libboost-system-dev \
+	&& rm -rf /var/lib/apt/lists/*
+
+FROM install-dependency AS build-stage
+ARG ARCH
+ENV ENV=${ARCH}
+COPY . /app
+WORKDIR /app/linux-plugin-sdk
+RUN /usr/bin/make 
+WORKDIR /app
+RUN /usr/bin/make
+RUN /usr/bin/make package
+
+FROM scratch AS output-stage
+ARG ARCH
+ENV ENV=${ARCH}
+COPY --from=build-stage /app/${ARCH}/output/*.tar.gz / 
