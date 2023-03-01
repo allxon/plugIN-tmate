@@ -46,12 +46,14 @@
           "displayType": "string"
         },
         {
-          "name": "web",
+          "name": "Access from Web Browser",
           "displayName": "Web",
+          "description": "Click on \"Connect\" to connect session via web browser",
           "displayType": "link"
         },
         {
-          "name": "ssh",
+          "name": "Access from Linux/Mac Local Terminal",
+          "description": "Click on \"Connect\" to connect session via Linux/Mac terminal",
           "displayName": "SSH",
           "displayType": "link"
         }
