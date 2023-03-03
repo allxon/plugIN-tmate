@@ -18,7 +18,7 @@ bool needCheckStates = false;
 bool needSendStates = false;
 bool gotSigInt = false;
 
-void SendNotifyPluginStates(CWebSocketClient *ptr, bitset<4> statesUpdated)
+void SendNotifyPluginStates(CWebSocketClient *ptr, bitset<5> statesUpdated)
 {
 #ifdef DEBUG
     UTL_LOG_INFO("states updated? %s", statesUpdated.to_string<char,string::traits_type,string::allocator_type>().c_str());
@@ -31,6 +31,7 @@ void SendNotifyPluginStates(CWebSocketClient *ptr, bitset<4> statesUpdated)
     if ((statesUpdated & StateUpdated::status) == StateUpdated::status) cJSON_AddItemToArray(states, plugin->AddStatusState());
     if ((statesUpdated & StateUpdated::web) == StateUpdated::web) cJSON_AddItemToArray(states, plugin->AddWebLinkState());
     if ((statesUpdated & StateUpdated::ssh) == StateUpdated::ssh) cJSON_AddItemToArray(states, plugin->AddSshLinkState());
+    if ((statesUpdated & StateUpdated::ssh_string) == StateUpdated::ssh_string) cJSON_AddItemToArray(states, plugin->AddSshStringLinkState());
     char *statesNotifyString = plugin->SetNotifyStates("tmateWebConsole", states);
     ptr->SendPluginNotify(ptr, statesNotifyString);
     free(statesNotifyString);
@@ -507,11 +508,11 @@ static UTLTHREAD_FN_DECL NotifyDataThread(void* arg)
             sleep(0); //For release CPU resource not be blocked by this thread.
             if (updatePluginObj->IsUpdated())
             {
-                bitset<4> fileChanges;
+                bitset<5> fileChanges;
                 if (stateCount % 20 == 1 || needCheckStates) // check if any changes of states output files
                 {
                     // Run states' scripts to see if there're changes need to be notified.
-                    bitset<4> updateMask;
+                    bitset<5> updateMask;
                     updateMask.set();
 #ifdef DEBUG
                     UTL_LOG_INFO("updateMask = %s", updateMask.to_string<char,std::string::traits_type,std::string::allocator_type>().c_str());
