@@ -107,4 +107,7 @@ $ sudo docker build --build-arg ARCH=<x86|jetson> .
 
 # export binary to `output` folder
 $ sudo docker build -o output --build-arg ARCH=<x86|jetson> .
+
+# dev env
+sudo docker run --rm --network host -v $(pwd):/app --name [CONTAINER_NAME] -it [IMAGE_NAME]
 ```

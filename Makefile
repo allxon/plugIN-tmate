@@ -80,15 +80,15 @@ clean:
 
 install: $(OUTPUTPATH)/$(TARGET) $(CONFIG_FOLDER) $(SCRIPTS_FOLDER)
 ifneq (ls $(BIN_FOLDER),)
-	$(QUIET)sudo $(RM) $(BIN_FOLDER)
+	$(QUIET)$(RM) $(BIN_FOLDER)
 endif
-	$(QUIET)sudo mkdir -p $(BIN_FOLDER)
-	$(QUIET)sudo cp $(OUTPUTPATH)/$(TARGET) $(BIN_FOLDER)/
-	$(QUIET)sudo cp -r $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(BIN_FOLDER)/
+	$(QUIET)mkdir -p $(BIN_FOLDER)
+	$(QUIET)cp $(OUTPUTPATH)/$(TARGET) $(BIN_FOLDER)/
+	$(QUIET)cp -r $(CONFIG_FOLDER) $(SCRIPTS_FOLDER) $(BIN_FOLDER)/
 	$(QUIET)$(ECHO) "$(TARGET) and config, scripts files are copied to $(BIN_FOLDER)/"
 
 uninstall:
-	$(QUIET)sudo $(RM) $(BIN_FOLDER)
+	$(QUIET)$(RM) $(BIN_FOLDER)
 	$(QUIET)$(ECHO) "$(TARGET) is removed."
 	
 toolchainbuild: toolchaininit init compile

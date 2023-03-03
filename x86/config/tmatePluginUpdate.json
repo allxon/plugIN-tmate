@@ -1,13 +1,13 @@
 {
   "appGUID": "286b0652-c5ef-46c0-aa8c-7b617bbf6ab9",
   "appName": "AllxonTmatePlugin",
-  "displayName": "Tmate plugIN",
+  "displayName": "Tmate Add-in",
   "type": "ib",
   "version": "1.00.2007",
   "modules": [
     {
       "moduleName": "tmateWebConsole",
-      "displayName": "Tmate",
+      "displayName": "Tmate Add-in",
       "properties": [
         {
           "name": "officialSite",
@@ -47,13 +47,21 @@
         },
         {
           "name": "web",
-          "displayName": "Web",
+          "displayName": "Access from Web Browser",
+          "description": "Click on \"Connect\" to connect session via web browser",
           "displayType": "link"
         },
         {
           "name": "ssh",
-          "displayName": "SSH",
+          "displayName": "Access from Linux/Mac Terminal",
+          "description": "Click on \"Connect\" to connect session via Linux/Mac terminal",
           "displayType": "link"
+        },
+        {
+          "name": "ssh_string",
+          "displayName": "Access from Windows Terminal",
+          "description": "Copy and paste the SSH session on the Windows PowerShell",
+          "displayType": "string"
         }
       ],
       "commands": [

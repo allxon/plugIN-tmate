@@ -6,18 +6,19 @@
 
 using namespace std;
 
-
-const bitset<4> StateUpdated::status = bitset<4>("0001");
-const bitset<4> StateUpdated::version = bitset<4>("0010");
-const bitset<4> StateUpdated::web = bitset<4>("0100");
-const bitset<4> StateUpdated::ssh = bitset<4>("1000");
-const bitset<4> StateUpdated::none = bitset<4>("0000");
+const bitset<5> StateUpdated::status = bitset<5>("00001");
+const bitset<5> StateUpdated::version = bitset<5>("00010");
+const bitset<5> StateUpdated::web = bitset<5>("00100");
+const bitset<5> StateUpdated::ssh = bitset<5>("01000");
+const bitset<5> StateUpdated::ssh_string = bitset<5>("10000");
+const bitset<5> StateUpdated::none = bitset<5>("00000");
 const bitset<1> AlertStatus::alarm1 = bitset<1>("1");
 const bitset<1> AlertStatus::none = bitset<1>("0");
 const string TmateStates::status = "status";
 const string TmateStates::version = "version";
 const string TmateStates::web = "web";
 const string TmateStates::ssh = "ssh";
+const string TmateStates::ssh_string = "ssh_string";
 const string TmateCommands::install = "install";
 const string TmateCommands::start = "start";
 const string TmateCommands::stop = "stop";
@@ -27,27 +28,29 @@ const string CTmatePlugin::moduleTmate = "tmateWebConsole";
 
 string AlertStatus::GetName(bitset<1> alertStatus)
 {
-    if (alertStatus == AlertStatus::none) return "none";
+    if (alertStatus == AlertStatus::none)
+        return "none";
     else
     {
         string alertStatusName;
-        if ((alertStatus & AlertStatus::alarm1) == AlertStatus::alarm1) alertStatusName.append("alarm1|");
+        if ((alertStatus & AlertStatus::alarm1) == AlertStatus::alarm1)
+            alertStatusName.append("alarm1|");
         return alertStatusName;
     }
 }
 
-CTmatePlugin::CTmatePlugin():CPluginSample()
+CTmatePlugin::CTmatePlugin() : CPluginSample()
 {
     Init();
 }
 
-CTmatePlugin::CTmatePlugin(CPluginSampleConfig *sampleConfig):CPluginSample(sampleConfig)
+CTmatePlugin::CTmatePlugin(CPluginSampleConfig *sampleConfig) : CPluginSample(sampleConfig)
 {
     Init();
 }
 
 CTmatePlugin::CTmatePlugin(string apiVersion, bool minify, string appGUID, string accessKey)
-    :CPluginSample(apiVersion, minify, appGUID, accessKey)
+    : CPluginSample(apiVersion, minify, appGUID, accessKey)
 {
     Init();
 }
@@ -65,7 +68,7 @@ CUpdatePluginJson *CTmatePlugin::SetNotifyPluginUpdate()
     return updatePluginObj;
 }
 
-bool CTmatePlugin::AcceptReceivedCommand(string cmdName, map<string, string> params, string& reason)
+bool CTmatePlugin::AcceptReceivedCommand(string cmdName, map<string, string> params, string &reason)
 {
     bool result = true;
     if (!cmdName.empty())
@@ -83,7 +86,7 @@ bool CTmatePlugin::AcceptReceivedCommand(string cmdName, map<string, string> par
         reason = "Rejected.";
     }
     UTL_LOG_INFO("reason: %s", reason.c_str());
-    return result;  
+    return result;
 }
 
 string CTmatePlugin::ExecuteReceivedCommand(string cmdName, map<string, string> params, cJSON *cmdAck)
@@ -97,11 +100,12 @@ string CTmatePlugin::ExecuteReceivedCommand(string cmdName, map<string, string> 
         string cmdParam = "";
         if (cmdName.compare(TmateCommands::start) == 0)
         {
-            for (auto it=params.begin(); it!=params.end(); it++)
+            for (auto it = params.begin(); it != params.end(); it++)
             {
                 string paramName = (*it).first;
                 string paramValue = (*it).second;
-                if (paramValue.empty()) continue;
+                if (paramValue.empty())
+                    continue;
                 if (paramName.compare(TmateCommands::password) == 0)
                 {
                     cmdParam = cmdParam.append("--").append(paramName).append("="); // set to cmdParam directly since it's the first argument.
@@ -116,24 +120,26 @@ string CTmatePlugin::ExecuteReceivedCommand(string cmdName, map<string, string> 
         thread th1 = thread(CTmatePlugin::RunPluginScriptCmdOutput, scriptCmd, cmdParam, ref(result), ref(message));
         // if (cmdName.compare(TmateCommands::start) == 0)
         // {
-            // UTL_LOG_INFO("3. start to run script");
-            // th1.detach();
-            // sleep(3);
+        // UTL_LOG_INFO("3. start to run script");
+        // th1.detach();
+        // sleep(3);
         // }
         // else
         // {
-            th1.join();
+        th1.join();
         // }
 
-        if (!cmdAck) cmdAck = cJSON_CreateObject();
+        if (!cmdAck)
+            cmdAck = cJSON_CreateObject();
         cJSON_AddStringToObject(cmdAck, JKEY_NAME, cmdName.c_str());
         cJSON_AddStringToObject(cmdAck, JKEY_RESULT, message.c_str());
-        cmdState = result? AckState::ACKED : AckState::ERRORED;
+        cmdState = result ? AckState::ACKED : AckState::ERRORED;
     }
     else
     {
         UTL_LOG_WARN("Unrecognized command.");
-        if (!cmdAck) cmdAck = cJSON_CreateObject();
+        if (!cmdAck)
+            cmdAck = cJSON_CreateObject();
         cJSON_AddStringToObject(cmdAck, JKEY_NAME, cmdName.c_str());
         cJSON_AddStringToObject(cmdAck, JKEY_RESULT, "Unrecognized command.");
         cmdState = AckState::REJECTED;
@@ -141,23 +147,23 @@ string CTmatePlugin::ExecuteReceivedCommand(string cmdName, map<string, string> 
     return cmdState;
 }
 
-void CTmatePlugin::UpdateStates(bitset<4> updateMask)
+void CTmatePlugin::UpdateStates(bitset<5> updateMask)
 {
-    UTL_LOG_INFO("update mask: %s", updateMask.to_string<char,string::traits_type,string::allocator_type>().c_str());
+    UTL_LOG_INFO("update mask: %s", updateMask.to_string<char, string::traits_type, string::allocator_type>().c_str());
     if ((updateMask & StateUpdated::status) == StateUpdated::status)
     {
         string cmdStatus = m_pluginPath;
         cmdStatus.append(SCRIPTS_STATES_PATH).append(TmateStates::status).append(SCRIPT_EXT);
         RunStatesScript(cmdStatus);
     }
-    
+
     if ((updateMask & StateUpdated::web) == StateUpdated::web)
     {
         string cmdWeb = m_pluginPath;
         cmdWeb.append(SCRIPTS_STATES_PATH).append(TmateStates::web).append(SCRIPT_EXT);
         RunStatesScript(cmdWeb);
     }
-    
+
     if ((updateMask & StateUpdated::ssh) == StateUpdated::ssh)
     {
         string cmdSsh = m_pluginPath;
@@ -170,6 +176,12 @@ void CTmatePlugin::UpdateStates(bitset<4> updateMask)
         string cmdVersion = m_pluginPath;
         cmdVersion.append(SCRIPTS_STATES_PATH).append(TmateStates::version).append(SCRIPT_EXT);
         RunStatesScript(cmdVersion);
+    }
+    if ((updateMask & StateUpdated::ssh_string) == StateUpdated::ssh_string)
+    {
+        string cmdSshString = m_pluginPath;
+        cmdSshString.append(SCRIPTS_STATES_PATH).append(TmateStates::ssh_string).append(SCRIPT_EXT);
+        RunStatesScript(cmdSshString);
     }
 }
 
@@ -197,9 +209,15 @@ cJSON *CTmatePlugin::AddSshLinkState()
     return GetStatesOutput(m_pluginPath, TmateStates::ssh);
 }
 
-bitset<4> CTmatePlugin::IsStateFilesChanged()
+cJSON *CTmatePlugin::AddSshStringLinkState()
 {
-    bitset<4> result(0000UL);
+    string scriptFile = m_pluginPath;
+    return GetStatesOutput(m_pluginPath, TmateStates::ssh_string);
+}
+
+bitset<5> CTmatePlugin::IsStateFilesChanged()
+{
+    bitset<5> result(00000UL);
     time_t newMTime;
     int rStatus = FileIsModified(m_statusOutput.c_str(), statusTime, newMTime);
     if (rStatus > 0)
@@ -237,14 +255,23 @@ bitset<4> CTmatePlugin::IsStateFilesChanged()
         UTL_LOG_INFO("ssh output is updated.");
 #endif
     }
-
-    UTL_LOG_INFO("result: %s", result.to_string<char,string::traits_type,string::allocator_type>().c_str());
+    int rSshString = FileIsModified(m_sshStringOutput.c_str(), sshStringTime, newMTime);
+    if (rSshString > 0)
+    {
+        sshStringTime = newMTime;
+        result = result | StateUpdated::ssh_string;
+#ifdef DEBUG
+        UTL_LOG_INFO("ssh_string output is updated.");
+#endif
+    }
+    UTL_LOG_INFO("result: %s", result.to_string<char, string::traits_type, string::allocator_type>().c_str());
     return result;
 }
 
 void CTmatePlugin::UpdateAlarmsData(const char *payload)
 {
-    if (payload == NULL) return;
+    if (payload == NULL)
+        return;
 
     m_alertsStatus = AlertStatus::none;
 
@@ -282,6 +309,7 @@ void CTmatePlugin::Init()
     versionTime = 0;
     webTime = 0;
     sshTime = 0;
+    sshStringTime = 0;
     m_pluginPath = string(PLUGINS_PATH).append(appGUID).append("/");
     m_statusOutput = m_pluginPath;
     m_statusOutput.append(SCRIPTS_STATES_PATH).append(TmateStates::status).append(SCRIPT_OUTPUT_EXT);
@@ -291,12 +319,15 @@ void CTmatePlugin::Init()
     m_webOutput.append(SCRIPTS_STATES_PATH).append(TmateStates::web).append(SCRIPT_OUTPUT_EXT);
     m_sshOutput = m_pluginPath;
     m_sshOutput.append(SCRIPTS_STATES_PATH).append(TmateStates::ssh).append(SCRIPT_OUTPUT_EXT);
+    m_sshStringOutput = m_pluginPath;
+    m_sshStringOutput.append(SCRIPTS_STATES_PATH).append(TmateStates::ssh_string).append(SCRIPT_OUTPUT_EXT);
     m_alarmUpdateObj = NULL;
 }
 
 string CTmatePlugin::ReadOutput(const string outputName)
 {
-    if (outputName.empty()) return "Cannot find output";
+    if (outputName.empty())
+        return "Cannot find output";
 
     string output = "";
     string str;
@@ -335,7 +366,8 @@ cJSON *CTmatePlugin::GetStatesOutput(string pluginPath, string stateName)
         UTL_LOG_INFO(message.c_str());
         cJSON_AddItemToObject(testState, JKEY_VALUE, cJSON_Parse(message.c_str()));
     }
-    else if (stateName.compare(TmateStates::version) == 0 || stateName.compare(TmateStates::status) == 0)
+    else if (stateName.compare(TmateStates::version) == 0 || stateName.compare(TmateStates::status) == 0 ||
+             stateName.compare(TmateStates::ssh_string) == 0)
     {
         cJSON_AddStringToObject(testState, JKEY_VALUE, message.c_str());
     }
@@ -430,7 +462,8 @@ void CTmatePlugin::RunPluginScriptCmdOutput(string scriptCmd, string cmdParam, b
     // UTL_LOG_INFO("Result = %s", result ? "true" : "false");
 }
 
-string CTmatePlugin::RandomString(int len) {
+string CTmatePlugin::RandomString(int len)
+{
     string s;
     static const char alphanum[] =
         "0123456789"
@@ -445,11 +478,13 @@ string CTmatePlugin::RandomString(int len) {
     return s;
 }
 
-int CTmatePlugin::FileIsModified(const char *path, time_t oldMTime, time_t &newMTime) {
+int CTmatePlugin::FileIsModified(const char *path, time_t oldMTime, time_t &newMTime)
+{
     // UTL_LOG_INFO("file: %s, oldMTime: %d", path, oldMTime);
     struct stat fileStat;
     int err = stat(path, &fileStat);
-    if (err != 0) {
+    if (err != 0)
+    {
         perror(" [file_is_modified] stat");
         exit(errno);
     }

@@ -12,11 +12,12 @@
 class StateUpdated
 {
 public:
-    const static std::bitset<4> status;
-    const static std::bitset<4> version;
-    const static std::bitset<4> web;
-    const static std::bitset<4> ssh;
-    const static std::bitset<4> none;
+    const static std::bitset<5> status;
+    const static std::bitset<5> version;
+    const static std::bitset<5> web;
+    const static std::bitset<5> ssh;
+    const static std::bitset<5> ssh_string;
+    const static std::bitset<5> none;
 };
 
 class AlertStatus
@@ -35,6 +36,7 @@ public:
     const static std::string version;
     const static std::string web;
     const static std::string ssh;
+    const static std::string ssh_string;
 };
 
 class TmateCommands
@@ -59,12 +61,13 @@ public:
     CAlarmUpdatePluginJson *GetAlarmUpdateObject() { return m_alarmUpdateObj; }
     bool AcceptReceivedCommand(std::string cmdName, std::map<std::string, std::string> params, std::string& reason);
     std::string ExecuteReceivedCommand(std::string cmdName, std::map<std::string, std::string> params, cJSON *cmdAck);
-    void UpdateStates(std::bitset<4> updateMask);
+    void UpdateStates(std::bitset<5> updateMask);
     cJSON *AddStatusState();
     cJSON *AddVersionState();
     cJSON *AddWebLinkState();
     cJSON *AddSshLinkState();
-    std::bitset<4> IsStateFilesChanged();
+    cJSON *AddSshStringLinkState();
+    std::bitset<5> IsStateFilesChanged();
     void UpdateAlarmsData(const char *payload);
 
     std::string m_pluginPath;
@@ -72,6 +75,7 @@ public:
     std::string m_versionOutput;
     std::string m_webOutput;
     std::string m_sshOutput;
+    std::string m_sshStringOutput;
     const static std::string moduleTmate;
 
 protected:
@@ -89,6 +93,7 @@ private:
     time_t versionTime;
     time_t webTime;
     time_t sshTime;
+    time_t sshStringTime;
     std::bitset<1> m_alertsStatus;
     CAlarmUpdatePluginJson *m_alarmUpdateObj;
 };
