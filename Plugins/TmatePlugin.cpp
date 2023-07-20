@@ -342,6 +342,12 @@ string CTmatePlugin::ReadOutput(const string outputName)
         output.append(str);
     }
 
+    if (output.size() > 1000)
+    {
+        output = output.substr(0, 1000);
+        output.append("...");
+    }
+
     return output;
 }
 
