@@ -11,8 +11,7 @@
       "properties": [
         {
           "name": "officialSite",
-          "displayName": "Powered by",
-          "description": "",
+          "displayName": "i-m-tmate-p-officialSite",
           "displayType": "link",
           "value":
           {
@@ -22,8 +21,7 @@
         },
         {
           "name": "license",
-          "displayName": "LICENSE",
-          "description": "",
+          "displayName": "i-m-tmate-p-license",
           "displayType": "link",
           "value":
           {
@@ -35,32 +33,32 @@
       "states": [
         {
           "name": "version",
-          "displayName": "Version",
-          "description": "The software version of tmate.",
+          "displayName": "i-m-tmate-s-license",
+          "description": "i-m-tmate-s-license-d",
           "displayType": "string"
         },
         {
           "name": "status",
-          "displayName": "Session",
-          "description": "Running status of tmate.",
+          "displayName": "i-m-tmate-s-status",
+          "description": "i-m-tmate-s-status-d",
           "displayType": "string"
         },
         {
           "name": "web",
-          "displayName": "Access from Web Browser",
-          "description": "Click on \"Connect\" to connect session via web browser",
+          "displayName": "i-m-tmate-s-web",
+          "description": "i-m-tmate-s-web-d",
           "displayType": "link"
         },
         {
           "name": "ssh",
-          "displayName": "Access from Linux/Mac Terminal",
-          "description": "Click on \"Connect\" to connect session via Linux/Mac terminal",
+          "displayName": "i-m-tmate-s-ssh",
+          "description": "i-m-tmate-s-ssh-d",
           "displayType": "link"
         },
         {
           "name": "ssh_string",
-          "displayName": "Access from Windows Terminal",
-          "description": "Copy and paste the SSH session on the Windows PowerShell",
+          "displayName": "i-m-tmate-s-ssh_string",
+          "description": "i-m-tmate-s-ssh_string-d",
           "displayType": "string"
         }
       ],
@@ -68,14 +66,14 @@
         {
           "name": "start",
           "type": "asynchronous",
-          "displayCategory": "Session",
-          "displayName": "Open session",
-          "description": "Open a tmate session to enable instant terminal sharing.",
+          "displayCategory": "i-m-tmate-c-dc-session",
+          "displayName": "i-m-tmate-c-start",
+          "description": "i-m-tmate-c-start-d",
           "params": [
             {
               "name": "password",
-              "displayName": "Password",
-              "description": "Set a password for the user account tmate",
+              "displayName": "i-m-tmate-c-start-p-password",
+              "description": "i-m-tmate-c-start-p-password-d",
               "displayType": "string",
               "required": true,
               "defaultValue":"tmate"
@@ -85,25 +83,25 @@
         {
           "name": "stop",
           "type": "asynchronous",
-          "displayCategory": "Session",
-          "displayName": "Close session",
-          "description": "Close the tmate session to terminate terminal sharing.",
+          "displayCategory": "i-m-tmate-c-dc-session",
+          "displayName": "i-m-tmate-c-stop",
+          "description": "i-m-tmate-c-stop-d",
           "params": []
         },
         {
           "name": "install",
           "type": "asynchronous",
-          "displayCategory": "Installation",
-          "displayName": "Install tmate",
-          "description": "Install tmate to be able to do instant terminal sharing.",
+          "displayCategory": "i-m-tmate-c-dc-installation",
+          "displayName": "i-m-tmate-c-install",
+          "description": "i-m-tmate-c-install-d",
           "params": []
         },
         {
           "name": "uninstall",
           "type": "asynchronous",
-          "displayCategory": "Installation",
-          "displayName": "Uninstall tmate",
-          "description": "Uninstall tmate.",
+          "displayCategory": "i-m-tmate-c-dc-installation",
+          "displayName": "i-m-tmate-c-uninstall",
+          "description": "i-m-tmate-c-uninstall-d",
           "params": []
         }
       ]
