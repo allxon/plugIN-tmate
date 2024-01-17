@@ -3,7 +3,7 @@
   "appName": "AllxonTmatePlugin",
   "displayName": "Tmate Add-in",
   "type": "ib",
-  "version": "1.00.2007",
+  "version": "1.02.2000",
   "modules": [
     {
       "moduleName": "tmateWebConsole",
